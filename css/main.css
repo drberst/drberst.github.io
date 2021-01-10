@@ -1,0 +1,162 @@
+body,
+html {
+    margin: 0;
+    height: 100%;
+    font-family: "Arial";
+}
+
+:root {
+    --tileSize: 24px;
+    --totalWidth: calc(24px * 30);
+    --smallTileSize: 10px;
+}
+
+/* // Dimensions */
+/* 2px: 1px; */
+/* 22px: 22px; */
+
+body {
+    margin: 0px 60px;
+    background: rgb(66, 66, 66);
+    background-image: radial-gradient(rgba(211, 162, 0, 0.274) 1px, transparent 0);
+    background-size: 50px 50px;
+    background-position: -19px -19px;
+}
+
+.page {
+    /* display: grid; */
+    /* grid-gap: 1rem; */
+
+    /* place-self: center; */
+    width: fit-content;
+    /* border: 5px green solid; */
+    /* padding: 5px; */
+    background: rgb(236, 230, 210);
+    /* gap: 5px; */
+    /* grid-template-columns: repeat(26, var(--tileSize)); */
+    /* grid-auto-rows: var(--tileSize); */
+}
+
+.tile {
+    place-self: center;
+    justify-content: center;
+    display: flex;
+    place-items: center;
+    /* border: 1px solid black; */
+    /* outline: 1px solid black; */
+    font-size: 1em;
+
+    /* font-weight: bold; */
+    font-family: "VG323", monospace;
+    /* color: rgb(0, 49, 61); */
+    color: black;
+    /* width: 25px; */
+    user-select: none;
+    line-height: var(--tileSize);
+    display: inline-block;
+    text-align: center;
+    /* background: rgba(13, 2, 110, 0.356); */
+    /* padding: 1em; */
+    /* border: .1rem solid white; */
+    /* border: 2px solid black; */
+    /* width: 8rem; */
+    /* height: 2em; */
+    /* white-space: nowrap; */
+    overflow: hidden;
+    /* text-overflow: ellipsis; */
+    width: var(--tileSize);
+    height: var(--tileSize);
+    /* align-content: right; */
+    /* float: left;  */
+}
+
+.tile {
+    vertical-align: middle;
+    background-color: red;
+    background-image: url("../3.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center; /* Center the image */
+    image-rendering: pixelated;
+}
+.tileTiny {
+    font-size: 4px;
+    line-height: 6px;
+    overflow: auto;
+}
+
+.someTileN10 {
+    background: white;
+}
+
+@keyframes highlight {
+    0% {
+        background-color: red;
+    }
+
+    100% {
+        background-color: white;
+    }
+}
+
+@keyframes example2 {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes example {
+    from {
+        transform: scale(0) rotate(0deg);
+    }
+    to {
+        transform: scale(5) rotate(1800deg);
+    }
+    /* 0% {font-weight: 100%} */
+    /* 50% {font-weight: 200%} */
+    /* 100% {font-weight: 100%} */
+    /* 0% {color: rgba(255, 0, 0, 0);}
+    50% {color: yellow;}
+    100% {color: rgba(255, 0, 0, 0);} */
+}
+
+@keyframes wiggle {
+    0% {
+        transform: scale(1);
+    }
+    90% {
+        transform: scale(3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.tileHighlight {
+    /* border: 5px solid white; */
+    animation-duration: 1000ms;
+    animation-name: example;
+    /* animation: example 1s, example2 1s; */
+    animation-iteration-count: 1;
+}
+
+.player {
+    color: rgb(0, 247, 255);
+    /* background: rgba(0, 0, 0, 0.616); */
+    /* border-color: #9ecaed; */
+    box-shadow: 0 0 20px #00ffdd;
+    z-index: +1;
+}
+
+.container {
+    /* grid-column-start: 1; */
+    margin: auto;
+    width: var(--totalWidth);
+    color: rgb(240, 240, 240);
+    background: rgb(14, 14, 14);
+    border-radius: 10px;
+    padding: 1em 5em;
+}

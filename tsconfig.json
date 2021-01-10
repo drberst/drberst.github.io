@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "module": "ES2020",
+        "watch": true,
+        "target": "ES2020",
+        // "rootDir": "${workspaceFolder}",
+        // "composite": true,
+        "outDir": "build",
+        "removeComments": true,
+        "listEmittedFiles": true,
+        // "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true
+        // "isolatedModules": true,
+        // "declarationDir": "declare_dir"
+        // "emitDeclarationOnly": true
+    },
+    // "include": ["main.ts",""],
+
+    "include": ["./src/*.ts"]
+    // "references": [{ "path": "../src" }],
+    // "exclude": ["node_modules", "**/node_modules/*", "build/*", "declare_dir/*", "old_src/*"]
+}
