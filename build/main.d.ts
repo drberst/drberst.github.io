@@ -3,11 +3,13 @@ declare let DIVMAP: Map<String, Object>;
 declare let ALPHA: string[];
 declare let COLS: number;
 declare let ROWS: number;
-declare class printer {
+declare class HtmlPrinter {
     container_div: string;
     MAX: number;
     count: number;
     constructor();
+    static divpool: Map<String, HTMLDivElement>;
+    static defaultonclickfunction: () => void;
     init(): void;
     framelen(n?: number): number;
 }
@@ -19,5 +21,5 @@ declare class Utils {
     static isNull(element: any): boolean;
     static isDefined(element: any): boolean;
 }
-declare let mainprinter: printer;
+declare function main(): void;
 //# sourceMappingURL=main.d.ts.map

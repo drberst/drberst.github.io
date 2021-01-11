@@ -4,9 +4,8 @@
 let PBN = new Map<String, Number>();
 let DIVMAP = new Map<String, Object>();
 let ALPHA = ['ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
-let COLS = 26;
-let ROWS = 10;
-globalThis.g = { PBN, DIVMAP, COLS, ROWS };
+let COLS = 8;
+let ROWS = 8;
 
 
 for (let i = 0; i < ALPHA.length; i++) {
@@ -18,39 +17,46 @@ for (let i = 0; i < ALPHA.length; i++) {
 console.log("test", globalThis.g);
 
 // Printer
-class printer {
+class HtmlPrinter {
     container_div: string = "#grid_container";
     MAX: number;
     count: number;
     constructor() { };
+    static divpool: Map<String, HTMLDivElement>;
+
+    static defaultonclickfunction = function () {
+        this.classList.toggle("tile");
+    }
     init() {
         let index = 0;
         let aPage = document.querySelector(this.container_div);
         this.MAX = ROWS * COLS;
         this.count = 0;
+        HtmlPrinter.divpool = new Map();
 
         for (let rows = 0; rows < ROWS; rows++) {
             for (let cols = 0; cols < COLS; cols++) {
-                let cellname = Utils.xy2Cell(cols, rows);
+                let cellname = Utils.xy2Cell(cols, rows + 1);
                 let div = document.createElement('div');
 
                 div.id = String(index);
                 div.innerHTML = cellname;
                 div.title = String(index);
                 div.className = "tile";
+                div.onclick = HtmlPrinter.defaultonclickfunction;
 
                 setTimeout(function () {
                     aPage.append(div)
-                }, (5000 / this.MAX) * index)
+                }, this.framelen(1000) * index)
 
-                // DIVMAP.set(cellname, div);
+                HtmlPrinter.divpool.set(cellname, div);
                 index++;
                 this.count++;
             }
         }
     }
-    framelen(n = 5000) {
-        return n / this.count;
+    framelen(n = 1000) {
+        return n / this.MAX;
     }
 };
 
@@ -102,6 +108,27 @@ class Utils {
 }
 
 
+function main() {
 
-let mainprinter = new printer();
-mainprinter.init();
+    // document.documentElement.style.setProperty('--tileSize', 24 + 'px');
+    document.documentElement.style.setProperty('--totalWidth', COLS * 24 + 'px');
+    let mainprinter = new HtmlPrinter();
+    mainprinter.init();
+    document.getElementById("clickMe").onclick = function () {
+        let n = 100;
+        for (let i = 0; i < n; i++) {
+            // const element = array[i];
+            let id = Math.random() * n;
+            let tile = document.getElementById("#" + id);
+            console.log("BUTTON ACTIVATION", "target=", tile);
+            // let aMatrix = new Matrix(3, 3, aTile.id);
+            // aTile.value = aMatrix;
+            tile.innerHTML = `[${Math.floor(Math.random() * 100)}]`;
+            // controller.queue_update(aTile);
+        }
+    }
+    globalThis.g = { PBN, DIVMAP, COLS, ROWS, HtmlPrinter };
+}
+
+
+main();
