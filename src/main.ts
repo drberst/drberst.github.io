@@ -1,32 +1,68 @@
 
 
 // Maps and data structures
-let PBN = new Map<String, Number>();
+var PBN = new Map<String, number>();
 let DIVMAP = new Map<String, Object>();
-let ALPHA = ['ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
+let ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split("");
 let COLS = 8;
 let ROWS = 8;
 
+var animationqueue = 0;
 
-for (let i = 0; i < ALPHA.length; i++) {
-    for (let ii = 0; ii < 10; ii++) {
-        const element = ALPHA[i] + ii;
-        PBN.set(element, 0);
+for (let i = 0; i < COLS; i++) {
+    for (let ii = 0; ii < ROWS; ii++) {
+        //cell names start at first letter, but not the 0th number
+        const element = ALPHA[i] + (ii + 1);
+        PBN.set(element, ii);
     }
 }
 console.log("test", globalThis.g);
 
+function update_div_value(div) {
+    // debugger;
+    const cellname = div.title;
+    let value: number = PBN.get(cellname); if (value === undefined) value = -1;
+    div.innerHTML = String(value);
+    div.className = "tile level" + value;
+    div.style.boxShadow = `inset 0px ${-value}px ${value + 2}px  #DDD`;
+    animateandqueueremoval(div);
+}
+
+function animateandqueueremoval(tile) {
+    // console.log(animationqueue, tile);
+    tile.classList.remove("tileHighlight");
+    setTimeout(function () {
+        tile.classList.add("tileHighlight");
+        animationqueue--;
+    }, 1 + 5 * animationqueue++);
+}
+
+function defaultonclickfunction(event) {
+    let cell = event.currentTarget.title;
+    let val = PBN.get(cell);
+    let delta = 1;
+    if (event.type === "wheel") {
+        event.preventDefault();
+
+        if (event.deltaY > 0) delta *= -1;
+    }
+
+    PBN.set(cell, val + delta);
+    update_div_value(event.currentTarget);
+}
+
 // Printer
 class HtmlPrinter {
+    cleanuplist: [string];
     container_div: string = "#grid_container";
     MAX: number;
     count: number;
     constructor() { };
     static divpool: Map<String, HTMLDivElement>;
 
-    static defaultonclickfunction = function () {
-        this.classList.toggle("tile");
-    }
+
+
+
     init() {
         let index = 0;
         let aPage = document.querySelector(this.container_div);
@@ -38,15 +74,17 @@ class HtmlPrinter {
             for (let cols = 0; cols < COLS; cols++) {
                 let cellname = Utils.xy2Cell(cols, rows + 1);
                 let div = document.createElement('div');
-
                 div.id = String(index);
-                div.innerHTML = cellname;
-                div.title = String(index);
-                div.className = "tile";
-                div.onclick = HtmlPrinter.defaultonclickfunction;
+                div.title = cellname;
+                div.tabIndex = 0;
+
+                div.onclick = defaultonclickfunction;
+                div.onwheel = defaultonclickfunction;
+                update_div_value(div);
 
                 setTimeout(function () {
                     aPage.append(div)
+                    // div.classList.remove("tileHighlight");
                 }, this.framelen(1000) * index)
 
                 HtmlPrinter.divpool.set(cellname, div);
@@ -106,28 +144,70 @@ class Utils {
         return !Utils.isNull(element);
     }
 }
+function highlightRandom() {
+    let n = ROWS * COLS - 1;
+    for (let i = 0; i < 5; i++) {
+        let id: string = `${Math.floor(Math.random() * n)}`;
+        let tile = document.getElementById(id);
+        // console.log("BUTTON ACTIVATION", .currentTarget=", tile);
+        // let aMatrix = new Matrix(3, 3, aTile.id);
+        // aTile.value = aMatrix;
+        // tile.innerHTML = `[${id}]`;
+        tile.click();
+        animateandqueueremoval(tile);
+        // controller.queue_update(aTile);
+    }
 
+}
 
 function main() {
-
-    // document.documentElement.style.setProperty('--tileSize', 24 + 'px');
-    document.documentElement.style.setProperty('--totalWidth', COLS * 24 + 'px');
+    let pxsize = 24;
+    document.documentElement.style.setProperty('--tileSize', pxsize + 'px');
+    document.documentElement.style.setProperty('--totalWidth', COLS * (pxsize + 2) + 'px');
     let mainprinter = new HtmlPrinter();
     mainprinter.init();
-    document.getElementById("clickMe").onclick = function () {
-        let n = 100;
-        for (let i = 0; i < n; i++) {
-            // const element = array[i];
-            let id = Math.random() * n;
-            let tile = document.getElementById("#" + id);
-            console.log("BUTTON ACTIVATION", "target=", tile);
-            // let aMatrix = new Matrix(3, 3, aTile.id);
-            // aTile.value = aMatrix;
-            tile.innerHTML = `[${Math.floor(Math.random() * 100)}]`;
-            // controller.queue_update(aTile);
-        }
+    document.getElementById("clickMe").onclick = highlightRandom;
+
+    let tt = new Tool();
+    globalThis.g = { PBN, DIVMAP, COLS, ROWS, HtmlPrinter, Tool, tt };
+    console.log("Done setting up:", globalThis.g);
+}
+
+
+/**
+ * I think what I want to make is some kind of state machine
+ * I want things to be in one state -> react to an input -> propagate the consequences ->
+ * Now we have a new state -> show the new state -> show the transition somehow? Animation?
+ *
+ * So, how does that guide my code design?
+ * Well, I want my code to be simple to understand, so I want to focus just a few pieces, with a few connections, and few moving parts.
+ * Well, what do all of those words mean?
+ *  Pieces = files / classes / objects
+ *  Connections = objects that need to push/pull data from another object
+ *  Moving parts = Anything that changes state, and anything that can break during its execution.
+ *
+ * I like that vocabulary, so let's proceed;
+ * Pieces:
+ *  Tools    = Primatives/structs, essentially static functions, no internal state  = [strings,numbers,arrays,maps] custom = [State,HTMLprinter,]
+ *  Workers  = Objects, may have data on what they're doing/have done/will do = [MapManager,StateManager]
+ *  Managers = Holds map of workers, tells those workers what to do, passes them input and collects their output
+ *  Leaders  = Interact with humans, take a concept and translate it into requests for the managers
+ *
+ * Hmm, I like this model, but again I feel like I'm getting out of scope. Trying to do too much at once. But I'll leave these notes here
+ *
+ *
+ *
+ *
+ * ****
+ *  Another way to think of it would be as models
+ *  like, if I'm making a new square from scratch, what are all the variables that are involved
+ * and then I could seperate them into [workers/tools] after.
+ *
+ */
+class Tool {
+    speak() {
+        console.log("I have spoken");
     }
-    globalThis.g = { PBN, DIVMAP, COLS, ROWS, HtmlPrinter };
 }
 
 

@@ -1,7 +1,23 @@
 :root {
     --tileSize: 24px;
-    --totalWidth: calc(24px * 2);
+    --totalWidth: calc(25px * 2);
     --smallTileSize: 10px;
+    --level0: hsl(0, 50%, 50%);
+    --level1: hsl(40, 50%, 50%);
+    --level2: hsl(80, 50%, 50%);
+    --level3: hsl(120, 50%, 50%);
+    --level4: hsl(180, 50%, 50%);
+    --level5: hsl(220, 50%, 50%);
+    --level6: hsl(260, 50%, 50%);
+    --level7: hsl(285, 50%, 50%);
+    --level8: hsl(360, 50%, 50%);
+    /* --heat-0: #577590; */
+    /* --heat-1: #43aa8b; */
+    /* --heat-2: #90be6d; */
+    /* --heat-3: #f9c74f; */
+    /* --heat-4: #f8961e; */
+    /* --heat-5: #f3722c; */
+    /* --heat-6: #f94144; */
 }
 
 body {
@@ -19,10 +35,14 @@ body {
     width: var(--totalWidth);
     color: rgb(240, 240, 240);
     background: rgb(14, 14, 14);
-    border-radius: 10px;
+    /* border-radius: 10px; */
     padding: 1em 5em;
 }
-
+.grid_container {
+    width: var(--totalWidth);
+    height: var(--totalWidth);
+    background-color: rgb(59, 59, 59);
+}
 .tile {
     /***TEXT*/
     font-family: "VG323", monospace;
@@ -33,42 +53,58 @@ body {
     line-height: var(--tileSize);
     height: var(--tileSize);
     width: var(--tileSize);
-    /* border: 1px solid black; */
-
+    margin: 1px;
     display: inline-block;
     place-self: center;
     place-items: center;
     justify-content: center;
     text-align: center;
     overflow: hidden;
-}
 
-.tile {
     /***BACKGROUND*/
     vertical-align: middle;
-    /* background-color: red; */
-    background-image: url("../3.png");
+    background-color: var(--level0);
+    /* background-image: url("../3.png");
     background-repeat: no-repeat;
     background-size: contain;
-    background-position: center;
-    image-rendering: pixelated;
+    background-position: center; */
+    /* image-rendering: pixelated; */
+}
+.level0 {
+    background-color: var(--level0);
+}
+.level1 {
+    background-color: var(--level1);
+}
+.level2 {
+    background-color: var(--level2);
+}
+.level3 {
+    background-color: var(--level3);
+}
+.level4 {
+    background-color: var(--level4);
+}
+.level5 {
+    background-color: var(--level5);
+}
+.level6 {
+    background-color: var(--level6);
+}
+.level7 {
+    background-color: var(--level7);
+}
+.level8 {
+    background-color: var(--level8);
 }
 
 .tileHighlight {
     /* border: 5px solid white; */
     animation-duration: 1000ms;
-    animation-name: wiggle;
+    animation-name: example2;
     /* text-decoration: underline; */
     /* animation: example 1s, example2 1s; */
     /* animation-iteration-count: 3; */
-}
-
-.player {
-    color: rgb(0, 247, 255);
-    /* background: rgba(0, 0, 0, 0.616); */
-    /* border-color: #9ecaed; */
-    box-shadow: 0 0 20px #00ffdd;
-    z-index: +1;
 }
 
 /***ANIMATION*/
@@ -84,10 +120,10 @@ body {
 
 @keyframes example2 {
     from {
-        transform: rotate(0deg);
+        transform: rotateY(0deg);
     }
     to {
-        transform: rotate(360deg);
+        transform: rotateY(720deg);
     }
 }
 @keyframes example {
@@ -101,13 +137,13 @@ body {
 
 @keyframes wiggle {
     0% {
-        transform: scale(1);
+        transform: rotateY(0deg);
     }
-    15% {
-        transform: scale(2);
+    20% {
+        transform: rotateY(350deg);
     }
 
     100% {
-        transform: scale(1);
+        transform: rotateY(360deg);
     }
 }
