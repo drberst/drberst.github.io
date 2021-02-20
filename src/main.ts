@@ -4,33 +4,62 @@
 3. collections of functions
 4. Using of 1-3 for stage 2 complexity
 5. Assembling into final complexity
-
 */
-let GLOBALS = {
+
+
+const GLOB = {
     ROWS: 8,
     COLS: 8,
     TILEPX: 23,
-    container_div: "#grid_container"
+    container_div: "#grid_container",
 }
+const FUN = {
+    d: function (n) {
+        return Math.floor(n * Math.random()) + 1;
+    }
+}
+const MAPS = {
+    id2cell: new Map(),
+    cell2text: new Map()
 
+}
+const SPELLS = {
+    CrazyTiles: function () {
+        let count = 0;
+        let intervalid = setInterval(function () {
+            const randomID = FUN.d(64) - 1;
+            const randomCell = Utils.n2Cell(randomID);
+            let randomdiv = document.getElementById(randomCell);
+            Utils.update_div_value(randomdiv, String(FUN.d(7)));
+            count++;
+            if (count > 14) clearInterval(intervalid);
+        }, 50);
+    }
+}
 let stages = {
     init: function () {
-        let index = 1;
-        let aPage = document.querySelector(GLOBALS.container_div);
+        let index = 0;
+        let aPage = document.querySelector(GLOB.container_div);
         aPage.innerHTML = "";
-        this.MAX = GLOBALS.ROWS * GLOBALS.COLS;
+        this.MAX = GLOB.ROWS * GLOB.COLS;
         this.count = 0;
         this.divpool = new Map();
 
-        for (let rows = 0; rows < GLOBALS.ROWS; rows++) {
-            for (let cols = 0; cols < GLOBALS.COLS; cols++) {
-                let cellname = Utils.xy2Cell(cols, rows + 1);
+        for (let rows = 0; rows < GLOB.ROWS; rows++) {
+            for (let cols = 0; cols < GLOB.COLS; cols++) {
+                let cellname = Utils.xy2Cell(cols, rows);
                 let div = document.createElement('div');
+
                 div.id = cellname;
                 div.title = String(index);
                 div.tabIndex = 0;
+
+                MAPS.id2cell.set(index, cellname);
+
+                MAPS.cell2text.set(cellname, cellname);
                 Utils.update_div_value(div);
                 aPage.append(div)
+
                 this.divpool.set(cellname, div);
                 index++;
                 this.count++;
@@ -45,7 +74,7 @@ let stages = {
         let count = 0;
         let intervalid = setInterval(function () {
             let randomdiv = document.querySelector("#" + Utils.n2Cell(d(64)));
-            Utils.update_div_value(randomdiv, d(7));
+            Utils.update_div_value(randomdiv, String(FUN.d(7)));
             count++;
             if (count > 100) clearInterval(intervalid);
         }, 100);
@@ -56,16 +85,17 @@ class Utils {
     static clearIntervals() {
 
     }
-    static update_div_value(div, val = undefined) {
+    static update_div_value(div, val = "empty") {
         // debugger;
-        const cellname = div.title;
-        if (val === undefined) {
-            div.innerHTML = div.title;
+        const cellname = div.id;
+        if (val === "empty") {
+            div.innerHTML = MAPS.cell2text.get(cellname);
             div.className = "tile";
+            if (div.innerHTML.length === 0) div.innerHTML = div.title;
             return;
         }
-        let value: number = val; if (value === undefined) value = -1;
-
+        let value = val;
+        if (value === undefined) value = "-1";
         div.innerHTML = String(value);
         div.className = "tile level" + value;
         // div.style.boxShadow = `inset 0px ${-value}px ${value + 2}px  #DDD`;
@@ -75,7 +105,8 @@ class Utils {
         const alphabet = "abcdefghijklmnopqrstuvqxyz";
         const len = alphabet.length;
 
-        if (num < len || num < 0) return alphabet.charAt(num);
+        if (num < len &&
+            num >= 0) return alphabet.charAt(num);
         // let tens = Math.floor(num / len);
         // let result = alphabet.charAt(tens - 1) + Utils.numToAbc(num % len);
         console.log("num2abcfail", num)
@@ -86,8 +117,10 @@ class Utils {
         return Utils.numToAbc(x).toUpperCase() + y;
     }
     static n2Cell = function (n) {
-        let col = Math.floor(n / GLOBALS.COLS);
-        let row = n % col;
+        let maptemp = MAPS.id2cell.get(n);
+        if (maptemp !== undefined) return maptemp;
+        let col = Math.floor(n / GLOB.COLS);
+        let row = (col > 0) ? n % col : n;
         return Utils.xy2Cell(row, col);
     }
     static toFixedLength = function (input, length, padding?) {
@@ -136,7 +169,7 @@ class Utils {
                 }
                 currentcell++;
             }
-            currentcell += GLOBALS.COLS;
+            currentcell += GLOB.COLS;
         }
         console.log("Done...", result)
         return result;
@@ -145,8 +178,8 @@ class Utils {
 class Nav {
     static directions = function (id: number) {
         return {
-            above: id - GLOBALS.COLS,
-            below: id + GLOBALS.COLS,
+            above: id - GLOB.COLS,
+            below: id + GLOB.COLS,
             left: id - 1,
             right: id + 1
         }
@@ -154,16 +187,16 @@ class Nav {
     static zDivrections = function (div: HTMLDivElement) {
         let id = Number(div.id.substring(1));
         return {
-            above: id - GLOBALS.COLS,
-            below: id + GLOBALS.COLS,
+            above: id - GLOB.COLS,
+            below: id + GLOB.COLS,
             left: id - 1,
             right: id + 1
         }
     }
 }
 function BuildGrid() {
-    document.documentElement.style.setProperty('--tileSize', GLOBALS.TILEPX + 'px');
-    document.documentElement.style.setProperty('--totalWidth', GLOBALS.COLS * (GLOBALS.TILEPX + 2) + 'px');
+    document.documentElement.style.setProperty('--tileSize', GLOB.TILEPX + 'px');
+    document.documentElement.style.setProperty('--totalWidth', GLOB.COLS * (GLOB.TILEPX + 2) + 'px');
     stages.init();
     // stages.randomshit();
 };
@@ -172,7 +205,7 @@ function WriteNumber() {
     let startcell = 0;
     let results = Utils.ascii2CellList();
     results.forEach(element => {
-        Utils.update_div_value(document.querySelector("#" + element), 1);
+        Utils.update_div_value(document.querySelector("#" + element), "1");
     });
 }
 BuildGrid();

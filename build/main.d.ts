@@ -1,8 +1,18 @@
-declare let GLOBALS: {
+declare const GLOB: {
     ROWS: number;
     COLS: number;
     TILEPX: number;
     container_div: string;
+};
+declare const FUN: {
+    d: (n: any) => number;
+};
+declare const MAPS: {
+    id2cell: Map<any, any>;
+    cell2text: Map<any, any>;
+};
+declare const SPELLS: {
+    CrazyTiles: () => void;
 };
 declare let stages: {
     init: () => void;
@@ -10,10 +20,10 @@ declare let stages: {
 };
 declare class Utils {
     static clearIntervals(): void;
-    static update_div_value(div: any, val?: any): void;
+    static update_div_value(div: any, val?: string): void;
     static numToAbc: (num: any) => string;
     static xy2Cell: (x: any, y: any) => string;
-    static n2Cell: (n: any) => string;
+    static n2Cell: (n: any) => any;
     static toFixedLength: (input: any, length: any, padding?: any) => any;
     static clean: (element: any) => void;
     static isNull(element: any): boolean;
