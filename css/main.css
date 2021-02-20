@@ -1,8 +1,8 @@
 :root {
-    --tileSize: 24px;
-    --totalWidth: calc(25px * 2);
+    --tileSize: 18px;
+    --totalWidth: calc(20px * 2);
     --smallTileSize: 10px;
-    --level0: hsl(0, 50%, 50%);
+    --level0: hsl(0, 0%, 15%);
     --level1: hsl(40, 50%, 50%);
     --level2: hsl(80, 50%, 50%);
     --level3: hsl(120, 50%, 50%);
@@ -24,23 +24,24 @@ body {
     margin: 0px 60px;
     /*** dot grid background*/
     background: rgb(66, 66, 66);
-    background-image: radial-gradient(rgba(211, 162, 0, 0.274) 1px, transparent 0);
-    background-size: 50px 50px;
-    background-position: -19px -19px;
+    /* background-image: radial-gradient(rgba(211, 162, 0, 0.274) 1px, transparent 0); */
+    /* background-size: 50px 50px; */
+    /* background-position: -19px -19px; */
+    font-family: "VG323", monospace;
 }
 
 .container {
     /*** grid-column-start: 1; */
     margin: auto;
-    width: var(--totalWidth);
+    width: 300px;
     color: rgb(240, 240, 240);
     background: rgb(14, 14, 14);
     /* border-radius: 10px; */
-    padding: 1em 5em;
+    padding: 1em 2em;
 }
 .grid_container {
-    width: var(--totalWidth);
-    height: var(--totalWidth);
+    width: 200px;
+    height: 200px;
     background-color: rgb(59, 59, 59);
 }
 .tile {

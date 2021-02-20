@@ -1,126 +1,95 @@
+/*
+1. Global vars
+2. collections of data
+3. collections of functions
+4. Using of 1-3 for stage 2 complexity
+5. Assembling into final complexity
 
-
-// Maps and data structures
-var PBN = new Map<String, number>();
-let DIVMAP = new Map<String, Object>();
-let ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split("");
-let COLS = 8;
-let ROWS = 8;
-
-var animationqueue = 0;
-
-for (let i = 0; i < COLS; i++) {
-    for (let ii = 0; ii < ROWS; ii++) {
-        //cell names start at first letter, but not the 0th number
-        const element = ALPHA[i] + (ii + 1);
-        PBN.set(element, ii);
-    }
-}
-console.log("test", globalThis.g);
-
-function update_div_value(div) {
-    // debugger;
-    const cellname = div.title;
-    let value: number = PBN.get(cellname); if (value === undefined) value = -1;
-    div.innerHTML = String(value);
-    div.className = "tile level" + value;
-    div.style.boxShadow = `inset 0px ${-value}px ${value + 2}px  #DDD`;
-    animateandqueueremoval(div);
+*/
+let GLOBALS = {
+    ROWS: 8,
+    COLS: 8,
+    TILEPX: 23,
+    container_div: "#grid_container"
 }
 
-function animateandqueueremoval(tile) {
-    // console.log(animationqueue, tile);
-    tile.classList.remove("tileHighlight");
-    setTimeout(function () {
-        tile.classList.add("tileHighlight");
-        animationqueue--;
-    }, 1 + 5 * animationqueue++);
-}
-
-function defaultonclickfunction(event) {
-    let cell = event.currentTarget.title;
-    let val = PBN.get(cell);
-    let delta = 1;
-    if (event.type === "wheel") {
-        event.preventDefault();
-
-        if (event.deltaY > 0) delta *= -1;
-    }
-
-    PBN.set(cell, val + delta);
-    update_div_value(event.currentTarget);
-}
-
-// Printer
-class HtmlPrinter {
-    cleanuplist: [string];
-    container_div: string = "#grid_container";
-    MAX: number;
-    count: number;
-    constructor() { };
-    static divpool: Map<String, HTMLDivElement>;
-
-
-
-
-    init() {
-        let index = 0;
-        let aPage = document.querySelector(this.container_div);
-        this.MAX = ROWS * COLS;
+let stages = {
+    init: function () {
+        let index = 1;
+        let aPage = document.querySelector(GLOBALS.container_div);
+        aPage.innerHTML = "";
+        this.MAX = GLOBALS.ROWS * GLOBALS.COLS;
         this.count = 0;
-        HtmlPrinter.divpool = new Map();
+        this.divpool = new Map();
 
-        for (let rows = 0; rows < ROWS; rows++) {
-            for (let cols = 0; cols < COLS; cols++) {
+        for (let rows = 0; rows < GLOBALS.ROWS; rows++) {
+            for (let cols = 0; cols < GLOBALS.COLS; cols++) {
                 let cellname = Utils.xy2Cell(cols, rows + 1);
                 let div = document.createElement('div');
-                div.id = String(index);
-                div.title = cellname;
+                div.id = cellname;
+                div.title = String(index);
                 div.tabIndex = 0;
-
-                div.onclick = defaultonclickfunction;
-                div.onwheel = defaultonclickfunction;
-                update_div_value(div);
-
-                setTimeout(function () {
-                    aPage.append(div)
-                    // div.classList.remove("tileHighlight");
-                }, this.framelen(1000) * index)
-
-                HtmlPrinter.divpool.set(cellname, div);
+                Utils.update_div_value(div);
+                aPage.append(div)
+                this.divpool.set(cellname, div);
                 index++;
                 this.count++;
             }
         }
+        console.log(this);
+    },
+    randomshit: function () {
+        let d = function (n) {
+            return Math.floor(n * Math.random()) + 1;
+        }
+        let count = 0;
+        let intervalid = setInterval(function () {
+            let randomdiv = document.querySelector("#" + Utils.n2Cell(d(64)));
+            Utils.update_div_value(randomdiv, d(7));
+            count++;
+            if (count > 100) clearInterval(intervalid);
+        }, 100);
+
     }
-    framelen(n = 1000) {
-        return n / this.MAX;
-    }
-};
-
-
-// - - - Workers
-
-
-
-
-
-// - - - - UTILS
+}
 class Utils {
+    static clearIntervals() {
+
+    }
+    static update_div_value(div, val = undefined) {
+        // debugger;
+        const cellname = div.title;
+        if (val === undefined) {
+            div.innerHTML = div.title;
+            div.className = "tile";
+            return;
+        }
+        let value: number = val; if (value === undefined) value = -1;
+
+        div.innerHTML = String(value);
+        div.className = "tile level" + value;
+        // div.style.boxShadow = `inset 0px ${-value}px ${value + 2}px  #DDD`;
+        // animateandqueueremoval(div);
+    }
     static numToAbc = function (num) {
         const alphabet = "abcdefghijklmnopqrstuvqxyz";
         const len = alphabet.length;
 
         if (num < len || num < 0) return alphabet.charAt(num);
-        let tens = Math.floor(num / len);
-        let result = alphabet.charAt(tens - 1) + Utils.numToAbc(num % len);
-        return result;
+        // let tens = Math.floor(num / len);
+        // let result = alphabet.charAt(tens - 1) + Utils.numToAbc(num % len);
+        console.log("num2abcfail", num)
+        return "null";
     }
 
     static xy2Cell = function (x, y) {
         return Utils.numToAbc(x).toUpperCase() + y;
     }
-
+    static n2Cell = function (n) {
+        let col = Math.floor(n / GLOBALS.COLS);
+        let row = n % col;
+        return Utils.xy2Cell(row, col);
+    }
     static toFixedLength = function (input, length, padding?) {
         padding = padding || "0";
 
@@ -143,72 +112,68 @@ class Utils {
     static isDefined(element) {
         return !Utils.isNull(element);
     }
-}
-function highlightRandom() {
-    let n = ROWS * COLS - 1;
-    for (let i = 0; i < 5; i++) {
-        let id: string = `${Math.floor(Math.random() * n)}`;
-        let tile = document.getElementById(id);
-        // console.log("BUTTON ACTIVATION", .currentTarget=", tile);
-        // let aMatrix = new Matrix(3, 3, aTile.id);
-        // aTile.value = aMatrix;
-        // tile.innerHTML = `[${id}]`;
-        tile.click();
-        animateandqueueremoval(tile);
-        // controller.queue_update(aTile);
-    }
 
-}
+    static ascii2CellList() {
+        let startingcell = 0;
+        let currentcell = startingcell;
+        let ascii = [
+            "11100",
+            "00100",
+            "00100",
+            "00100",
+            "11111"
+        ]
+        let result = [];
+        for (let i = 0; i < ascii.length; i++) {
+            const line = ascii[i];
 
-function main() {
-    let pxsize = 24;
-    document.documentElement.style.setProperty('--tileSize', pxsize + 'px');
-    document.documentElement.style.setProperty('--totalWidth', COLS * (pxsize + 2) + 'px');
-    let mainprinter = new HtmlPrinter();
-    mainprinter.init();
-    document.getElementById("clickMe").onclick = highlightRandom;
+            for (let nChar = 0; nChar < line.length; nChar++) {
+                const element = line[nChar];
+                console.log(element);
 
-    let tt = new Tool();
-    globalThis.g = { PBN, DIVMAP, COLS, ROWS, HtmlPrinter, Tool, tt };
-    console.log("Done setting up:", globalThis.g);
-}
-
-
-/**
- * I think what I want to make is some kind of state machine
- * I want things to be in one state -> react to an input -> propagate the consequences ->
- * Now we have a new state -> show the new state -> show the transition somehow? Animation?
- *
- * So, how does that guide my code design?
- * Well, I want my code to be simple to understand, so I want to focus just a few pieces, with a few connections, and few moving parts.
- * Well, what do all of those words mean?
- *  Pieces = files / classes / objects
- *  Connections = objects that need to push/pull data from another object
- *  Moving parts = Anything that changes state, and anything that can break during its execution.
- *
- * I like that vocabulary, so let's proceed;
- * Pieces:
- *  Tools    = Primatives/structs, essentially static functions, no internal state  = [strings,numbers,arrays,maps] custom = [State,HTMLprinter,]
- *  Workers  = Objects, may have data on what they're doing/have done/will do = [MapManager,StateManager]
- *  Managers = Holds map of workers, tells those workers what to do, passes them input and collects their output
- *  Leaders  = Interact with humans, take a concept and translate it into requests for the managers
- *
- * Hmm, I like this model, but again I feel like I'm getting out of scope. Trying to do too much at once. But I'll leave these notes here
- *
- *
- *
- *
- * ****
- *  Another way to think of it would be as models
- *  like, if I'm making a new square from scratch, what are all the variables that are involved
- * and then I could seperate them into [workers/tools] after.
- *
- */
-class Tool {
-    speak() {
-        console.log("I have spoken");
+                if (element === "1") {
+                    result.push(Utils.xy2Cell(nChar, i + 1));
+                }
+                currentcell++;
+            }
+            currentcell += GLOBALS.COLS;
+        }
+        console.log("Done...", result)
+        return result;
     }
 }
+class Nav {
+    static directions = function (id: number) {
+        return {
+            above: id - GLOBALS.COLS,
+            below: id + GLOBALS.COLS,
+            left: id - 1,
+            right: id + 1
+        }
+    }
+    static zDivrections = function (div: HTMLDivElement) {
+        let id = Number(div.id.substring(1));
+        return {
+            above: id - GLOBALS.COLS,
+            below: id + GLOBALS.COLS,
+            left: id - 1,
+            right: id + 1
+        }
+    }
+}
+function BuildGrid() {
+    document.documentElement.style.setProperty('--tileSize', GLOBALS.TILEPX + 'px');
+    document.documentElement.style.setProperty('--totalWidth', GLOBALS.COLS * (GLOBALS.TILEPX + 2) + 'px');
+    stages.init();
+    // stages.randomshit();
+};
 
-
-main();
+function WriteNumber() {
+    let startcell = 0;
+    let results = Utils.ascii2CellList();
+    results.forEach(element => {
+        Utils.update_div_value(document.querySelector("#" + element), 1);
+    });
+}
+BuildGrid();
+WriteNumber();
