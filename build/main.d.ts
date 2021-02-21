@@ -34,17 +34,19 @@ declare class Utils {
     static clean: (element: any) => void;
     static isNull(element: any): boolean;
     static isDefined(element: any): boolean;
-    static ascii2CellList(options: any): any[];
+    static ascii2CellList(iStart?: Loc, iAscii?: string[]): any[];
 }
 declare class Loc {
     x: number;
     y: number;
-    index: number;
-    cellname: string;
     constructor(x?: number, y?: number);
-    static fromCell(cellname: any): Loc;
+    static new_fromCell(cellname: any): Loc;
+    static new_fromIndex(n: any): Loc;
     getCellname(): any;
     getIndex(): number;
+    shiftIndex(n?: number): Loc;
+    shiftY(n?: number): Loc;
+    shiftX(n?: number): Loc;
 }
 declare class Nav {
     static directions: (id: number) => {
@@ -61,5 +63,5 @@ declare class Nav {
     };
 }
 declare function BuildGrid(): void;
-declare function WriteNumber(): void;
+declare function WriteNumber(start: any): void;
 //# sourceMappingURL=main.d.ts.map

@@ -171,18 +171,23 @@ class Utils {
         return !Utils.isNull(element);
     }
 
-    static ascii2CellList(options) {
-        let startingcell = 0;
-        let currentcell = startingcell;
-        let vOffset = options.x ? options.x : 0;
-        let hOffset = 0;
-        let ascii = [
+    static ascii2CellList(iStart = new Loc(0, 0), iAscii = ["_1"]) {
+        let start = iStart;
+
+        let vOffset = start.x;
+        let hOffset = start.y;
+
+        let pattern_1 = [
             "110",
             "010",
             "010",
             "010",
             "111"
         ]
+        let ascii = iAscii;
+        if (ascii[0] === "_1") ascii = pattern_1;
+
+        let currentcell = start;
         let result = [];
         for (let i = 0; i < ascii.length; i++) {
             const line = ascii[i];
@@ -194,26 +199,26 @@ class Utils {
                 if (element === "1") {
                     result.push(Utils.xy2Cell(nChar + hOffset, i + vOffset));
                 }
-                currentcell++;
+                currentcell.shiftIndex(1);
             }
-            currentcell += GLOB.WIDTH;
+            currentcell.shiftIndex(GLOB.WIDTH);
         }
         console.log("Done...", result)
         return result;
     }
 }
 class Loc {
-    x: number;
-    y: number;
-    index: number;
-    cellname: string;
+    public x: number;
+    public y: number;
 
     constructor(x = 0, y = 0) {
         this.x = x;
+        if (this.x > GLOB.WIDTH) this.x -= GLOB.WIDTH;
         this.y = y;
+        if (this.y > GLOB.HEIGHT) this.y -= GLOB.HEIGHT;
     }
 
-    static fromCell(cellname) {
+    static new_fromCell(cellname) {
         let regresult = cellname.match(/([A-Z]+)(\d+)/)
         let x = Utils.abc2Num(regresult[1])
         let y = Number(regresult[2]);
@@ -223,13 +228,21 @@ class Loc {
 
         return objresult;
     }
-
+    static new_fromIndex(n) {
+        return Loc.new_fromCell(Utils.n2Cell(n));
+    }
     getCellname() {
         return Utils.xy2Cell(this.x, this.y);
     }
     getIndex() {
         return this.x + this.y * GLOB.WIDTH;
     }
+    shiftIndex(n = 1) {
+        return Loc.new_fromIndex(this.getIndex() + n);
+    }
+    shiftY(n = 1) { return new Loc(this.x, this.y + n) };
+
+    shiftX(n = 1) { return new Loc(this.x + n, this.y + n) };
 }
 class Nav {
     static directions = function (id: number) {
@@ -257,13 +270,13 @@ function BuildGrid() {
     // stages.randomshit();
 };
 
-function WriteNumber() {
+function WriteNumber(start) {
     let startcell = 0;
-    let results = Utils.ascii2CellList();
+    let results = Utils.ascii2CellList(new Loc(3, 3), ["_1"]);
     results.forEach(element => {
         Utils.update_div_value(document.querySelector("#" + element), "1");
     });
 }
 BuildGrid();
 // SPELLS.CrazyTiles(1000);
-WriteNumber();
+WriteNumber(new Loc(3, 3));
