@@ -13,6 +13,8 @@ const GLOB = {
     COUNT: 30 * 20,
     TILEPX: 22,
     container_div: "#grid_container",
+    LOWER: "abcdefghijklmnopqrstuvqxyz",
+    UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 }
 const MAPS = {
     id2cell: new Map(),
@@ -25,7 +27,7 @@ const FUN = {
 }
 
 const SPELLS = {
-    CrazyTiles: function () {
+    CrazyTiles: function (n = 50) {
         let count = 0;
         let intervalid = setInterval(function () {
             const randomID = FUN.d(GLOB.COUNT) - 1;
@@ -35,7 +37,7 @@ const SPELLS = {
             SPELLS.Increment(randomCell);
             Utils.update_div_value(randomdiv);
             count++;
-            if (count > 14) clearInterval(intervalid);
+            if (count > n) clearInterval(intervalid);
         }, 50);
     },
     Increment: function (cellname) {
@@ -101,34 +103,41 @@ class Utils {
 
     }
     static update_div_value(div, val = "default") {
-        // debugger;
         const cellname = div.id;
         if (val === "default") {
-            div.innerHTML = MAPS.cell2val.get(cellname);
-            div.className = "tile";
-            if (div.innerHTML.length === 0 || div.innerHTML === "undefined") div.innerHTML = div.id;
-            return;
+            val = MAPS.cell2val.get(cellname);
         }
-        let value = val;
-        if (value === undefined) value = "-1";
-        div.innerHTML = String(value);
-        div.className = "tile level" + value;
-        // div.style.boxShadow = `inset 0px ${ -value } px ${ value + 2 } px  #DDD`;
+        div.innerHTML = String(val);
+        if (div.innerHTML.length === 0
+            || div.innerHTML === "undefined") {
+
+            div.innerHTML = div.id;
+        }
+        div.className = "tile level" + val;
+        // if (Number(val) >= 0 && Number(val) <= 8) div.className = "tile level" + val;
         // animateandqueueremoval(div);
     }
     static num2Abc = function (num) {
-        const alphabet = "abcdefghijklmnopqrstuvqxyz";
-        const len = alphabet.length;
+        // const alphabet = "abcdefghijklmnopqrstuvqxyz";
+        const len = GLOB.UPPER.length;
 
-        if (num < len &&
-            num >= 0) return alphabet.charAt(num);
-        // let tens = Math.floor(num / len);
-        if (num - 26 >= 0) return alphabet.charAt(num - 26) + Utils.num2Abc(num - 26);
-        // let result = alphabet.charAt(tens - 1) + Utils.numToAbc(num % len);
+        if (num < len && num >= 0) return GLOB.UPPER.charAt(num);
+        if (num - 26 >= 0) return GLOB.UPPER.charAt(num - 26) + Utils.num2Abc(num - 26);
         console.log("num2abcfail", num)
         return "null";
     }
+    static abc2Num = function (abc) {
+        // const GLOB.UPPER = "abcdefghijklmnopqrstuvqxyz";
+        abc = abc.toUpperCase();
+        if (abc.length === 1) return GLOB.UPPER.indexOf(abc);
+        // if (abc.length === 2) return GLOB.UPPER.indexOf(abc.charAt(0)) + GLOB.UPPER.indexOf(abc.charAt(1))
 
+        console.log("error in abc2Num");
+        return -1;
+    }
+    static cell2XY = function (cellname) {
+
+    }
     static xy2Cell = function (x, y) {
         return Utils.num2Abc(x).toUpperCase() + y;
     }
@@ -162,9 +171,11 @@ class Utils {
         return !Utils.isNull(element);
     }
 
-    static ascii2CellList() {
+    static ascii2CellList(options) {
         let startingcell = 0;
         let currentcell = startingcell;
+        let vOffset = options.x ? options.x : 0;
+        let hOffset = 0;
         let ascii = [
             "110",
             "010",
@@ -181,7 +192,7 @@ class Utils {
                 console.log(element);
 
                 if (element === "1") {
-                    result.push(Utils.xy2Cell(nChar, i + 1));
+                    result.push(Utils.xy2Cell(nChar + hOffset, i + vOffset));
                 }
                 currentcell++;
             }
@@ -189,6 +200,35 @@ class Utils {
         }
         console.log("Done...", result)
         return result;
+    }
+}
+class Loc {
+    x: number;
+    y: number;
+    index: number;
+    cellname: string;
+
+    constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+    }
+
+    static fromCell(cellname) {
+        let regresult = cellname.match(/([A-Z]+)(\d+)/)
+        let x = Utils.abc2Num(regresult[1])
+        let y = Number(regresult[2]);
+        let objresult = new Loc(x, y);
+        console.log(regresult)
+        console.log(objresult)
+
+        return objresult;
+    }
+
+    getCellname() {
+        return Utils.xy2Cell(this.x, this.y);
+    }
+    getIndex() {
+        return this.x + this.y * GLOB.WIDTH;
     }
 }
 class Nav {
@@ -225,4 +265,5 @@ function WriteNumber() {
     });
 }
 BuildGrid();
+// SPELLS.CrazyTiles(1000);
 WriteNumber();

@@ -4,6 +4,8 @@ const GLOB = {
     COUNT: 30 * 20,
     TILEPX: 22,
     container_div: "#grid_container",
+    LOWER: "abcdefghijklmnopqrstuvqxyz",
+    UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 };
 const MAPS = {
     id2cell: new Map(),
@@ -15,7 +17,7 @@ const FUN = {
     }
 };
 const SPELLS = {
-    CrazyTiles: function () {
+    CrazyTiles: function (n = 50) {
         let count = 0;
         let intervalid = setInterval(function () {
             const randomID = FUN.d(GLOB.COUNT) - 1;
@@ -24,7 +26,7 @@ const SPELLS = {
             SPELLS.Increment(randomCell);
             Utils.update_div_value(randomdiv);
             count++;
-            if (count > 14)
+            if (count > n)
                 clearInterval(intervalid);
         }, 50);
     },
@@ -84,17 +86,14 @@ class Utils {
     static update_div_value(div, val = "default") {
         const cellname = div.id;
         if (val === "default") {
-            div.innerHTML = MAPS.cell2val.get(cellname);
-            div.className = "tile";
-            if (div.innerHTML.length === 0 || div.innerHTML === "undefined")
-                div.innerHTML = div.id;
-            return;
+            val = MAPS.cell2val.get(cellname);
         }
-        let value = val;
-        if (value === undefined)
-            value = "-1";
-        div.innerHTML = String(value);
-        div.className = "tile level" + value;
+        div.innerHTML = String(val);
+        if (div.innerHTML.length === 0
+            || div.innerHTML === "undefined") {
+            div.innerHTML = div.id;
+        }
+        div.className = "tile level" + val;
     }
     static isNull(element) {
         return element === undefined;
@@ -102,9 +101,11 @@ class Utils {
     static isDefined(element) {
         return !Utils.isNull(element);
     }
-    static ascii2CellList() {
+    static ascii2CellList(options) {
         let startingcell = 0;
         let currentcell = startingcell;
+        let vOffset = options.x ? options.x : 0;
+        let hOffset = 0;
         let ascii = [
             "110",
             "010",
@@ -119,7 +120,7 @@ class Utils {
                 const element = line[nChar];
                 console.log(element);
                 if (element === "1") {
-                    result.push(Utils.xy2Cell(nChar, i + 1));
+                    result.push(Utils.xy2Cell(nChar + hOffset, i + vOffset));
                 }
                 currentcell++;
             }
@@ -130,15 +131,22 @@ class Utils {
     }
 }
 Utils.num2Abc = function (num) {
-    const alphabet = "abcdefghijklmnopqrstuvqxyz";
-    const len = alphabet.length;
-    if (num < len &&
-        num >= 0)
-        return alphabet.charAt(num);
+    const len = GLOB.UPPER.length;
+    if (num < len && num >= 0)
+        return GLOB.UPPER.charAt(num);
     if (num - 26 >= 0)
-        return alphabet.charAt(num - 26) + Utils.num2Abc(num - 26);
+        return GLOB.UPPER.charAt(num - 26) + Utils.num2Abc(num - 26);
     console.log("num2abcfail", num);
     return "null";
+};
+Utils.abc2Num = function (abc) {
+    abc = abc.toUpperCase();
+    if (abc.length === 1)
+        return GLOB.UPPER.indexOf(abc);
+    console.log("error in abc2Num");
+    return -1;
+};
+Utils.cell2XY = function (cellname) {
 };
 Utils.xy2Cell = function (x, y) {
     return Utils.num2Abc(x).toUpperCase() + y;
@@ -163,6 +171,27 @@ Utils.clean = function (element) {
     element.classList.remove('tileHighlight');
     element.style = "huh";
 };
+class Loc {
+    constructor(x = 0, y = 0) {
+        this.x = x;
+        this.y = y;
+    }
+    static fromCell(cellname) {
+        let regresult = cellname.match(/([A-Z]+)(\d+)/);
+        let x = Utils.abc2Num(regresult[1]);
+        let y = Number(regresult[2]);
+        let objresult = new Loc(x, y);
+        console.log(regresult);
+        console.log(objresult);
+        return objresult;
+    }
+    getCellname() {
+        return Utils.xy2Cell(this.x, this.y);
+    }
+    getIndex() {
+        return this.x + this.y * GLOB.WIDTH;
+    }
+}
 class Nav {
 }
 Nav.directions = function (id) {
