@@ -1,54 +1,65 @@
 const GLOB = {
-    ROWS: 8,
-    COLS: 8,
-    TILEPX: 23,
+    HEIGHT: 30,
+    WIDTH: 20,
+    COUNT: 30 * 20,
+    TILEPX: 22,
     container_div: "#grid_container",
+};
+const MAPS = {
+    id2cell: new Map(),
+    cell2val: new Map()
 };
 const FUN = {
     d: function (n) {
         return Math.floor(n * Math.random()) + 1;
     }
 };
-const MAPS = {
-    id2cell: new Map(),
-    cell2text: new Map()
-};
 const SPELLS = {
     CrazyTiles: function () {
         let count = 0;
         let intervalid = setInterval(function () {
-            const randomID = FUN.d(64) - 1;
+            const randomID = FUN.d(GLOB.COUNT) - 1;
             const randomCell = Utils.n2Cell(randomID);
             let randomdiv = document.getElementById(randomCell);
-            Utils.update_div_value(randomdiv, String(FUN.d(7)));
+            SPELLS.Increment(randomCell);
+            Utils.update_div_value(randomdiv);
             count++;
             if (count > 14)
                 clearInterval(intervalid);
         }, 50);
+    },
+    Increment: function (cellname) {
+        let val = MAPS.cell2val.get(cellname);
+        let numval = Number(val);
+        if (numval)
+            MAPS.cell2val.set(cellname, numval + 1);
+        else
+            MAPS.cell2val.set(cellname, 1);
     }
 };
 let stages = {
     init: function () {
         let index = 0;
         let aPage = document.querySelector(GLOB.container_div);
+        const marg = 0;
         aPage.innerHTML = "";
-        this.MAX = GLOB.ROWS * GLOB.COLS;
-        this.count = 0;
-        this.divpool = new Map();
-        for (let rows = 0; rows < GLOB.ROWS; rows++) {
-            for (let cols = 0; cols < GLOB.COLS; cols++) {
+        aPage.style.width = `${(GLOB.TILEPX + marg) * GLOB.WIDTH}px`;
+        aPage.style.height = `${(GLOB.TILEPX + marg) * GLOB.HEIGHT}px`;
+        this.MAX = GLOB.HEIGHT * GLOB.WIDTH;
+        for (let rows = 0; rows < GLOB.HEIGHT; rows++) {
+            let row_wrapper = document.createElement('div');
+            row_wrapper.id = "row_" + rows;
+            aPage.append(row_wrapper);
+            for (let cols = 0; cols < GLOB.WIDTH; cols++) {
                 let cellname = Utils.xy2Cell(cols, rows);
                 let div = document.createElement('div');
                 div.id = cellname;
                 div.title = String(index);
                 div.tabIndex = 0;
                 MAPS.id2cell.set(index, cellname);
-                MAPS.cell2text.set(cellname, cellname);
                 Utils.update_div_value(div);
-                aPage.append(div);
-                this.divpool.set(cellname, div);
+                row_wrapper.append(div);
                 index++;
-                this.count++;
             }
         }
         console.log(this);
@@ -70,13 +81,13 @@ let stages = {
 class Utils {
     static clearIntervals() {
     }
-    static update_div_value(div, val = "empty") {
+    static update_div_value(div, val = "default") {
         const cellname = div.id;
-        if (val === "empty") {
-            div.innerHTML = MAPS.cell2text.get(cellname);
+        if (val === "default") {
+            div.innerHTML = MAPS.cell2val.get(cellname);
             div.className = "tile";
-            if (div.innerHTML.length === 0)
-                div.innerHTML = div.title;
+            if (div.innerHTML.length === 0 || div.innerHTML === "undefined")
+                div.innerHTML = div.id;
             return;
         }
         let value = val;
@@ -95,11 +106,11 @@ class Utils {
         let startingcell = 0;
         let currentcell = startingcell;
         let ascii = [
-            "11100",
-            "00100",
-            "00100",
-            "00100",
-            "11111"
+            "110",
+            "010",
+            "010",
+            "010",
+            "111"
         ];
         let result = [];
         for (let i = 0; i < ascii.length; i++) {
@@ -112,29 +123,31 @@ class Utils {
                 }
                 currentcell++;
             }
-            currentcell += GLOB.COLS;
+            currentcell += GLOB.WIDTH;
         }
         console.log("Done...", result);
         return result;
     }
 }
-Utils.numToAbc = function (num) {
+Utils.num2Abc = function (num) {
     const alphabet = "abcdefghijklmnopqrstuvqxyz";
     const len = alphabet.length;
     if (num < len &&
         num >= 0)
         return alphabet.charAt(num);
+    if (num - 26 >= 0)
+        return alphabet.charAt(num - 26) + Utils.num2Abc(num - 26);
     console.log("num2abcfail", num);
     return "null";
 };
 Utils.xy2Cell = function (x, y) {
-    return Utils.numToAbc(x).toUpperCase() + y;
+    return Utils.num2Abc(x).toUpperCase() + y;
 };
 Utils.n2Cell = function (n) {
     let maptemp = MAPS.id2cell.get(n);
     if (maptemp !== undefined)
         return maptemp;
-    let col = Math.floor(n / GLOB.COLS);
+    let col = Math.floor(n / GLOB.WIDTH);
     let row = (col > 0) ? n % col : n;
     return Utils.xy2Cell(row, col);
 };
@@ -154,8 +167,8 @@ class Nav {
 }
 Nav.directions = function (id) {
     return {
-        above: id - GLOB.COLS,
-        below: id + GLOB.COLS,
+        above: id - GLOB.WIDTH,
+        below: id + GLOB.WIDTH,
         left: id - 1,
         right: id + 1
     };
@@ -163,15 +176,15 @@ Nav.directions = function (id) {
 Nav.zDivrections = function (div) {
     let id = Number(div.id.substring(1));
     return {
-        above: id - GLOB.COLS,
-        below: id + GLOB.COLS,
+        above: id - GLOB.WIDTH,
+        below: id + GLOB.WIDTH,
         left: id - 1,
         right: id + 1
     };
 };
 function BuildGrid() {
     document.documentElement.style.setProperty('--tileSize', GLOB.TILEPX + 'px');
-    document.documentElement.style.setProperty('--totalWidth', GLOB.COLS * (GLOB.TILEPX + 2) + 'px');
+    document.documentElement.style.setProperty('--totalWidth', GLOB.WIDTH * (GLOB.TILEPX + 2) + 'px');
     stages.init();
 }
 ;
