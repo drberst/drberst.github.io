@@ -17,7 +17,7 @@ const FUN = {
     }
 };
 const SPELLS = {
-    CrazyTiles: function (n = 50) {
+    CrazyTiles: function (n) {
         let count = 0;
         let intervalid = setInterval(function () {
             const randomID = FUN.d(GLOB.COUNT) - 1;
@@ -40,6 +40,12 @@ const SPELLS = {
     }
 };
 let stages = {
+    reset: function () {
+        MAPS.cell2val.forEach((val, key) => {
+            MAPS.cell2val.set(key, key);
+            Utils.update_div_value(document.getElementById(key));
+        });
+    },
     init: function () {
         let index = 0;
         let aPage = document.querySelector(GLOB.container_div);
@@ -88,11 +94,18 @@ class Utils {
         if (val === "default") {
             val = MAPS.cell2val.get(cellname);
         }
+        else {
+            MAPS.cell2val.set(cellname, val);
+        }
         div.innerHTML = String(val);
         if (div.innerHTML.length === 0
             || div.innerHTML === "undefined") {
             div.innerHTML = div.id;
         }
+        let regresult = cellname.match(/([A-Z]+)(\d+)/);
+        let letter = regresult[1];
+        let number = Number(regresult[2]);
+        div.innerHTML = letter + `<sub style="font-size: 67%">${number}</sub>`;
         div.className = "tile level" + val;
     }
     static isNull(element) {
@@ -131,6 +144,17 @@ class Utils {
         }
         console.log("Done...", result);
         return result;
+    }
+    static cyclemanager(func, hz, count) {
+        let cycle = 0;
+        let stopperid = setInterval(function () {
+            if (cycle >= count) {
+                clearInterval(intervalid);
+                clearInterval(stopperid);
+            }
+            cycle++;
+        }, hz);
+        let intervalid = setInterval(func, hz);
     }
 }
 Utils.num2Abc = function (num) {
@@ -241,5 +265,20 @@ function WriteNumber(start) {
         Utils.update_div_value(document.querySelector("#" + element), "1");
     });
 }
+function miniRando() {
+    const randomID = FUN.d(GLOB.COUNT) - 1;
+    const randomCell = Utils.n2Cell(randomID);
+    let randomdiv = document.getElementById(randomCell);
+    SPELLS.Increment(randomCell);
+    Utils.update_div_value(randomdiv);
+}
+function Automata() {
+    Utils.cyclemanager(miniRando, 1000, 300);
+}
 BuildGrid();
-WriteNumber(new Loc(3, 3));
+document.getElementById("b0").addEventListener("click", stages.reset);
+document.getElementById("b1").addEventListener("click", BuildGrid);
+document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
+document.getElementById("b3").addEventListener("click", WriteNumber);
+document.getElementById("b4").addEventListener("click", Automata);
+export {};

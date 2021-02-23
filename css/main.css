@@ -2,7 +2,7 @@
     --tileSize: 18px;
     --totalWidth: calc(20px * 2);
     --smallTileSize: 10px;
-    --level0: hsl(0, 0%, 15%);
+    --level0: hsl(0, 0%, 19%);
     --level1: hsl(40, 50%, 50%);
     --level2: hsl(80, 50%, 50%);
     --level3: hsl(120, 50%, 50%);
