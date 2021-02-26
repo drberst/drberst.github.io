@@ -11,27 +11,30 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>v003</h1>
-        <!-- <br><br><br><br> -->
+    <!-- <br><br><br><br> -->
 
-        <p id="grid_container" class="grid_container"> this is the empty grid container</p>
-        <input id="b0" type="button" value="Reset" />
-        <input id="b1" type="button" value="BuildGrid" />
-        <input id="b2" type="button" value="RandomHighlight" />
-        <input id="b3" type="button" value="WriteNumber" />
-        <input id="b4" type="button" value="Automata" />
+    <div id="writable_area">
+        <h1>v004</h1>
+        <div id="outer_container" class="container">
+            <div id="layer_bg" class="grid_container"> this is the empty grid container </div>
+            <div id="layer_1" class="scene_container"> this is the empty SCENE2 container</div>
+            <div id="layer_2" class="scene_container"> this is the empty SCENE3 container</div>
+
+            <input id="b0" type="button" value="Reset" />
+            <input id="b1" type="button" value="BuildGrid" />
+            <input id="b2" type="button" value="RandomHighlight" />
+            <input id="b3" type="button" value="WriteNumber" />
+            <input id="b4" type="button" value="Automata" />
+
+        </div>
     </div>
 </body>
 
 <script type="module" src="build/Classes.js"></script>
 <script type="module" src="build/main.js"></script>
-<script type="text/javascript">
-    // let element = document.getElementById("b2");
-    // element.click();
-    // for (let i = 0; i < 64; i++) {
-    //     console.log(i, Utils.n2Cell(i));
-    // }
-</script>
+<!-- <script type="module">
+
+
+</script> -->
 
 </html>

@@ -1,9 +1,9 @@
 const GLOB = {
-    HEIGHT: 30,
-    WIDTH: 20,
-    COUNT: 30 * 20,
+    HEIGHT: 8,
+    WIDTH: 16,
+    COUNT: 8 * 16,
     TILEPX: 22,
-    container_div: "#grid_container",
+    container_div: "#layer_bg",
     LOWER: "abcdefghijklmnopqrstuvqxyz",
     UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 };
@@ -49,10 +49,11 @@ let stages = {
     init: function () {
         let index = 0;
         let aPage = document.querySelector(GLOB.container_div);
-        const marg = 0;
+        const marg = 1;
         aPage.innerHTML = "";
         aPage.style.width = `${(GLOB.TILEPX + marg) * GLOB.WIDTH}px`;
         aPage.style.height = `${(GLOB.TILEPX + marg) * GLOB.HEIGHT}px`;
+        document.querySelector(GLOB.container_div);
         this.MAX = GLOB.HEIGHT * GLOB.WIDTH;
         for (let rows = 0; rows < GLOB.HEIGHT; rows++) {
             let row_wrapper = document.createElement('div');
@@ -63,7 +64,6 @@ let stages = {
                 let div = document.createElement('div');
                 div.id = cellname;
                 div.title = String(index);
-                div.tabIndex = 0;
                 MAPS.id2cell.set(index, cellname);
                 Utils.update_div_value(div);
                 row_wrapper.append(div);
@@ -87,8 +87,6 @@ let stages = {
     }
 };
 class Utils {
-    static clearIntervals() {
-    }
     static update_div_value(div, val = "default") {
         const cellname = div.id;
         if (val === "default") {
@@ -114,7 +112,7 @@ class Utils {
     static isDefined(element) {
         return !Utils.isNull(element);
     }
-    static ascii2CellList(iStart = new Loc(0, 0), iAscii = ["_1"]) {
+    static ascii2CellList(iStart = new Loc(new Grid(3, 3), 0, 0), iAscii = ["_1"]) {
         let start = iStart;
         let vOffset = start.x;
         let hOffset = start.y;
@@ -198,41 +196,6 @@ Utils.clean = function (element) {
     element.classList.remove('tileHighlight');
     element.style = "huh";
 };
-class Loc {
-    constructor(x = 0, y = 0) {
-        this.x = x;
-        if (this.x > GLOB.WIDTH)
-            this.x -= GLOB.WIDTH;
-        this.y = y;
-        if (this.y > GLOB.HEIGHT)
-            this.y -= GLOB.HEIGHT;
-    }
-    static new_fromCell(cellname) {
-        let regresult = cellname.match(/([A-Z]+)(\d+)/);
-        let x = Utils.abc2Num(regresult[1]);
-        let y = Number(regresult[2]);
-        let objresult = new Loc(x, y);
-        console.log(regresult);
-        console.log(objresult);
-        return objresult;
-    }
-    static new_fromIndex(n) {
-        return Loc.new_fromCell(Utils.n2Cell(n));
-    }
-    getCellname() {
-        return Utils.xy2Cell(this.x, this.y);
-    }
-    getIndex() {
-        return this.x + this.y * GLOB.WIDTH;
-    }
-    shiftIndex(n = 1) {
-        return Loc.new_fromIndex(this.getIndex() + n);
-    }
-    shiftY(n = 1) { return new Loc(this.x, this.y + n); }
-    ;
-    shiftX(n = 1) { return new Loc(this.x + n, this.y + n); }
-    ;
-}
 class Nav {
 }
 Nav.directions = function (id) {
@@ -258,12 +221,21 @@ function BuildGrid() {
     stages.init();
 }
 ;
-function WriteNumber(start) {
-    let startcell = 0;
-    let results = Utils.ascii2CellList(new Loc(3, 3), ["_1"]);
-    results.forEach(element => {
-        Utils.update_div_value(document.querySelector("#" + element), "1");
-    });
+function WriteNumber() {
+    console.log("writenumber");
+    let pattern_1 = [
+        "11.",
+        ".1.",
+        ".1.",
+        ".1.",
+        "111"
+    ];
+    let mainstage = new Scene("layer_1");
+    let grod = Grid.fromAscii(pattern_1);
+    mainstage.addDiv("grod");
+    mainstage.addGrid(grod, "grod");
+    let maingrid = mainstage.list_gridElements[0];
+    mainstage.print("layer_1");
 }
 function miniRando() {
     const randomID = FUN.d(GLOB.COUNT) - 1;
@@ -275,10 +247,41 @@ function miniRando() {
 function Automata() {
     Utils.cyclemanager(miniRando, 1000, 300);
 }
+function TurnOnButtons() {
+    document.getElementById("b0").addEventListener("click", stages.reset);
+    document.getElementById("b1").addEventListener("click", BuildGrid);
+    document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
+    document.getElementById("b3").addEventListener("click", WriteNumber);
+    document.getElementById("b4").value = "StampNumber";
+    document.getElementById("b4").addEventListener("click", stampNumber);
+}
+;
+import { Scene } from "./Classes.js";
+function stampNumber() {
+    let pattern_1 = [
+        "11.",
+        ".1.",
+        ".1.",
+        ".1.",
+        "111"
+    ];
+    let pattern_2 = [
+        "222",
+        "..2",
+        ".2.",
+        "2..",
+        "222"
+    ];
+    let mainstage = new Scene("layer_2");
+    let grod = Grid.fromAscii(pattern_1);
+    let stamp = Grid.fromAscii(pattern_2);
+    grod.useStamp(stamp);
+    mainstage.addDiv("grod");
+    mainstage.addGrid(grod, "grod");
+    let maingrid = mainstage.list_gridElements[0];
+    mainstage.print("layer_2");
+}
+export { Utils };
+import { Grid, Loc } from "./Classes.js";
 BuildGrid();
-document.getElementById("b0").addEventListener("click", stages.reset);
-document.getElementById("b1").addEventListener("click", BuildGrid);
-document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
-document.getElementById("b3").addEventListener("click", WriteNumber);
-document.getElementById("b4").addEventListener("click", Automata);
-export {};
+TurnOnButtons();

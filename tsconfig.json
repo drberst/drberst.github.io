@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "module": "ES2020",
+        "module": "es6",
         "watch": true,
-        "target": "ES2020",
+        "target": "es6",
         // "rootDir": "${workspaceFolder}",
         // "composite": true,
         "outDir": "build",
