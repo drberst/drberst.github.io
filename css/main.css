@@ -1,6 +1,6 @@
 :root {
     --tileSize: 18px;
-    --totalWidth: calc(20px * 2);
+    --totalWidth: 200px;
     --smallTileSize: 10px;
     --level0: hsl(0, 0%, 19%);
     --level1: hsl(40, 50%, 50%);
@@ -30,34 +30,32 @@ body {
     font-family: "VG323", monospace;
 }
 #writable_area {
-    /*** grid-column-start: 1; */
-    margin: auto;
-    width: 80%;
+    /* grid-column-start: 1; */
+    /* margin: auto; */
+    /* width: 80%; */
     color: rgb(240, 240, 240);
     background: rgb(14, 14, 14);
     /* border-radius: 10px; */
     padding: 1em 2em;
     position: relative;
+    /* width: var(--totalWidth); */
 }
 #outer_container {
-    width: var(--totalWidth);
+    /* width: var(--totalWidth); */
     /* height: 200px; */
     background-color: rgb(59, 59, 59);
     position: relative;
 }
-#grid_container {
-    width: 200px;
-    height: 200px;
-    background-color: rgb(59, 59, 59);
-    position: relative;
-}
-.scene_container {
+
+.container {
     /* width: 200px; */
     /* height: 200px; */
+    width: var(--totalWidth);
+
     position: relative;
     /* display: none; */
-    left: 0px;
-    top: 0px;
+    /* left: 50%; */
+    /* top: 0px; */
     /* background-color: rgb(80, 80, 80); */
 }
 .tile {
@@ -66,21 +64,21 @@ body {
     color: black;
     user-select: none;
 
-    font-size: 0.2em;
+    font-size: 1em;
     line-height: var(--tileSize);
     height: var(--tileSize);
     width: var(--tileSize);
     margin: 0.5px;
     display: inline-block;
-    place-self: center;
-    place-items: center;
-    justify-content: center;
+    /* place-self: center; */
+    /* place-items: center; */
+    /* justify-content: center; */
     text-align: center;
-    overflow: visible;
-    overflow-wrap: normal;
+    overflow: hidden;
+    /* overflow-wrap: normal; */
     /***BACKGROUND*/
     vertical-align: middle;
-    /* border: -0.5px solid white; */
+    /* border: 0.5px solid white; */
     background-color: var(--level0);
     /* background-image: url("../3.png");
     background-repeat: no-repeat;
@@ -91,13 +89,17 @@ body {
     /* display: grid; */
     position: relative;
 }
-.tile2line {
+.tileInner {
     position: relative;
-    line-height: 2em;
+    line-height: 1em;
     /* letter-spacing: 1em; */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+.tile.level-1 {
+    background-color: hsl(0, 0%, 10%);
+    color: hsl(0, 0%, 45%);
 }
 .tile.level0 {
     background-color: var(--level0);

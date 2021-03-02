@@ -11,9 +11,7 @@ const GLOB = { // Universal constants
     HEIGHT: 8, //Height / Y
     WIDTH: 16, //Width  / X
     COUNT: 8 * 16,
-    REFGRID: new Grid(16, 8),
-    TILEPX: 50,
-    SPACING: 1,
+    TILEPX: 22,
     container_div: "#layer_bg",
     LOWER: "abcdefghijklmnopqrstuvqxyz",
     UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -33,11 +31,11 @@ const SPELLS = { // Functions that alter reality.
         let count = 0;
         let intervalid = setInterval(function () {
             const randomID = FUN.d(GLOB.COUNT) - 1;
-            const randomCell = Util.n2Cell(randomID);
+            const randomCell = Utils.n2Cell(randomID);
             let randomdiv = document.getElementById(randomCell);
             // Utils.update_div_value(randomdiv, String(FUN.d(7)));
             SPELLS.Increment(randomCell);
-            Util.update_div_value(randomdiv);
+            Utils.update_div_value(randomdiv);
             count++;
             if (count > n) clearInterval(intervalid);
         }, 50);
@@ -49,13 +47,14 @@ const SPELLS = { // Functions that alter reality.
             MAPS.cell2val.set(cellname, numval + 1);
         else
             MAPS.cell2val.set(cellname, 1);
+
     }
 }
 let stages = {
     reset: function () {
         MAPS.cell2val.forEach((val, key) => {
             MAPS.cell2val.set(key, key);
-            Util.update_div_value(document.getElementById(key));
+            Utils.update_div_value(document.getElementById(key));
         });
     },
     init: function () {
@@ -73,7 +72,7 @@ let stages = {
             row_wrapper.id = "row_" + rows;
             aPage.append(row_wrapper)
             for (let cols = 0; cols < GLOB.WIDTH; cols++) {
-                let cellname = Util.xy2Cell(cols, rows);
+                let cellname = Utils.xy2Cell(cols, rows);
                 let div = document.createElement('div');
 
                 div.id = cellname;
@@ -83,7 +82,7 @@ let stages = {
                 MAPS.id2cell.set(index, cellname);
 
                 // MAPS.cell2val.set(cellname, 0);
-                Util.update_div_value(div);
+                Utils.update_div_value(div);
                 row_wrapper.append(div)
 
                 index++;
@@ -91,18 +90,147 @@ let stages = {
         }
         console.log(this);
     },
-    randomshit: function (aGrid) {
+    randomshit: function () {
         let d = function (n) {
             return Math.floor(n * Math.random()) + 1;
         }
         let count = 0;
         let intervalid = setInterval(function () {
-            let randomdiv = document.querySelector("#" + Util.n2Cell(d(64), aGrid));
-            Util.update_div_value(randomdiv, String(FUN.d(7)));
+            let randomdiv = document.querySelector("#" + Utils.n2Cell(d(64)));
+            Utils.update_div_value(randomdiv, String(FUN.d(7)));
             count++;
             if (count > 100) clearInterval(intervalid);
         }, 100);
 
+    }
+}
+class Utils {
+
+    static update_div_value(div: Element, val = "default") {
+        const cellname = div.id;
+        if (val === "default") {
+            val = MAPS.cell2val.get(cellname);
+        } else {
+            MAPS.cell2val.set(cellname, val);
+        }
+        div.innerHTML = String(val);
+        if (div.innerHTML.length === 0
+            || div.innerHTML === "undefined") {
+            div.innerHTML = div.id;
+        }
+        // if (div.innerHTML.length === 3) {
+        let regresult = cellname.match(/([A-Z]+)(\d+)/);
+        let letter = regresult[1];
+        let number = Number(regresult[2]);
+
+        div.innerHTML = letter + `<sub style="font-size: 67%">${number}</sub>`;
+
+        // }
+        div.className = "tile level" + val;
+        // if (Number(val) >= 0 && Number(val) <= 8) div.className = "tile level" + val;
+        // animateandqueueremoval(div);
+    }
+    static num2Abc = function (num) {
+        // const alphabet = "abcdefghijklmnopqrstuvqxyz";
+        const len = GLOB.UPPER.length;
+
+        if (num < len && num >= 0) return GLOB.UPPER.charAt(num);
+        if (num - 26 >= 0) return GLOB.UPPER.charAt(num - 26) + Utils.num2Abc(num - 26);
+        console.log("num2abcfail", num)
+        return "null";
+    }
+    static abc2Num = function (abc) {
+        // const GLOB.UPPER = "abcdefghijklmnopqrstuvqxyz";
+        abc = abc.toUpperCase();
+        if (abc.length === 1) return GLOB.UPPER.indexOf(abc);
+        // if (abc.length === 2) return GLOB.UPPER.indexOf(abc.charAt(0)) + GLOB.UPPER.indexOf(abc.charAt(1))
+
+        console.log("error in abc2Num");
+        return -1;
+    }
+    static cell2XY = function (cellname) {
+
+    }
+    static xy2Cell = function (x, y) {
+        return Utils.num2Abc(x).toUpperCase() + y;
+    }
+    static n2Cell = function (n) {
+        let maptemp = MAPS.id2cell.get(n);
+        if (maptemp !== undefined) return maptemp;
+        let col = Math.floor(n / GLOB.WIDTH);
+        let row = (col > 0) ? n % col : n;
+        return Utils.xy2Cell(row, col);
+    }
+    static toFixedLength = function (input, length, padding?) {
+        padding = padding || "0";
+
+        if (length <= 0) {
+            let b = -1 * length;
+            return (input + padding.repeat(b - input.length).slice(-b));
+        }
+        return (padding.repeat(length) + input).slice(-length);
+    }
+
+    static clean = function (element) {
+        element.classList.remove('tileHighlight');
+        element.style = "huh";
+        // console.log("done cleaning",element);
+    }
+
+    static isNull(element) {
+        return element === undefined;
+    }
+    static isDefined(element) {
+        return !Utils.isNull(element);
+    }
+
+    static ascii2CellList(iStart = new Loc(new Grid(3, 3), 0, 0), iAscii = ["_1"]) {
+        let start = iStart;
+
+        let vOffset = start.x;
+        let hOffset = start.y;
+
+        let pattern_1 = [
+            "110",
+            "010",
+            "010",
+            "010",
+            "111"
+        ]
+        let ascii = iAscii;
+        if (ascii[0] === "_1") ascii = pattern_1;
+
+        let currentcell = start;
+        let result = [];
+        for (let i = 0; i < ascii.length; i++) {
+            const line = ascii[i];
+
+            for (let nChar = 0; nChar < line.length; nChar++) {
+                const element = line[nChar];
+                console.log(element);
+
+                if (element === "1") {
+                    result.push(Utils.xy2Cell(nChar + hOffset, i + vOffset));
+                }
+                currentcell.shiftIndex(1);
+            }
+            currentcell.shiftIndex(GLOB.WIDTH);
+        }
+        console.log("Done...", result)
+        return result;
+    }
+
+    static cyclemanager(func, hz, count) {
+
+        let cycle = 0;
+        let stopperid = setInterval(function () {
+            if (cycle >= count) {
+                clearInterval(intervalid);
+                clearInterval(stopperid);
+            }
+            cycle++;
+        }, hz);
+        let intervalid = setInterval(func, hz);
     }
 }
 
@@ -127,7 +255,7 @@ class Nav {
 }
 function BuildGrid() {
     document.documentElement.style.setProperty('--tileSize', GLOB.TILEPX + 'px');
-    document.documentElement.style.setProperty('--totalWidth', GLOB.WIDTH * (GLOB.TILEPX + GLOB.SPACING) + 'px');
+    document.documentElement.style.setProperty('--totalWidth', GLOB.WIDTH * (GLOB.TILEPX + 2) + 'px');
     stages.init();
     // TurnOnButtons();
     // stages.randomshit();
@@ -160,15 +288,15 @@ function WriteNumber() {
 
 function miniRando() {
     const randomID = FUN.d(GLOB.COUNT) - 1;
-    const randomCell = Util.n2Cell(randomID);
+    const randomCell = Utils.n2Cell(randomID);
     let randomdiv = document.getElementById(randomCell);
     // Utils.update_div_value(randomdiv, String(FUN.d(7)));
     SPELLS.Increment(randomCell);
-    Util.update_div_value(randomdiv);
+    Utils.update_div_value(randomdiv);
 }
 function Automata() {
     // SPELLS.CrazyTiles(10);
-    Util.cyclemanager(miniRando, 1000, 300);
+    Utils.cyclemanager(miniRando, 1000, 300);
 }
 
 
@@ -181,7 +309,7 @@ function TurnOnButtons() {
     document.getElementById("b4").addEventListener("click", stampNumber);
 
 };
-import { Scene, Util } from "./Classes.js";
+import { Scene } from "./Classes.js";
 function stampNumber() {
     let pattern_1 = [
         "11.",
@@ -215,20 +343,14 @@ function stampNumber() {
     // mainstage2.print("layer_2");
     // console.log(grod2);
 }
-
+// document.documentElement.style.setProperty('--tileSize', GLOB.TILEPX + 'px');
+// document.documentElement.style.setProperty('--totalWidth', GLOB.WIDTH * (GLOB.TILEPX + 2) + 'px');
 // Automata();
-// export { Utils };
-import { Grid, Loc, Composition } from "./Classes.js";
-function CompositionTesting() {
-    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
-    comp.init();
-    comp.set_bg("B1", 55);
-    // debugger;
-    comp.refresh();
-}
-CompositionTesting();
-// BuildGrid();
-// TurnOnButtons();
+export { Utils };
+import { Grid, Loc } from "./Classes.js";
+
+BuildGrid();
+TurnOnButtons();
 // let eng = new Being();
 // eng.start();
 // SPELLS.CrazyTiles(1000);
