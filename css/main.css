@@ -64,7 +64,7 @@ body {
     color: black;
     user-select: none;
 
-    font-size: 1em;
+    font-size: 67%;
     line-height: var(--tileSize);
     height: var(--tileSize);
     width: var(--tileSize);
@@ -118,15 +118,19 @@ body {
 }
 .level5 {
     background-color: var(--level5);
+    color: hsl(0, 0%, 90%);
 }
 .level6 {
     background-color: var(--level6);
+    color: hsl(0, 0%, 90%);
 }
 .level7 {
     background-color: var(--level7);
+    color: hsl(0, 0%, 90%);
 }
 .level8 {
     background-color: var(--level8);
+    color: hsl(0, 0%, 90%);
 }
 
 .tileHighlight {

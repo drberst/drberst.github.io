@@ -6,13 +6,14 @@
 5. Assembling into final complexity
 */
 6
-
+let h = 32;
+let w = 32;
 const GLOB = { // Universal constants
-    HEIGHT: 8, //Height / Y
-    WIDTH: 8, //Width  / X
-    COUNT: 8 * 8,
-    REFGRID: new Grid(8, 8),
-    TILEPX: 50,
+    HEIGHT: h, //Height / Y
+    WIDTH: w, //Width  / X
+    COUNT: h * w,
+    REFGRID: new Grid(w, h),
+    TILEPX: 25,
     SPACING: 1,
     container_div: "#layer_bg",
     LOWER: "abcdefghijklmnopqrstuvqxyz",
@@ -214,15 +215,23 @@ function CompositionTesting() {
     comp.init();
     // comp.set_bg("B1", 5);
     // debugger;
-    comp.fill(5);
-    comp.refresh();
+    // comp.fill(9);
+    // comp.refresh();
     TurnOnButtons(comp);
-    // comp.miniRando(100);
-    // comp.gameOfLife();
+    comp.miniRando(100);
+    comp.gameOfLife();
     // n2CellTesting(comp);
 }
 CompositionTesting();
+// function chainReaction(aComp:Composition) {
+//     let MAX = aComp.nWide * aComp.nTall;
+//     for (let i = 0; i < MAX; i++) {
+//         const current = "bg_" + Util.n2Cell(i, aComp.bg);
+//         console.log("testing", i, randomCell);
 
+//         aCompo
+//     }
+// }
 function n2CellTesting(aComp: Composition) {
     let MAX = aComp.nWide * aComp.nTall;
     for (let i = 0; i < MAX; i++) {

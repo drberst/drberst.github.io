@@ -25,7 +25,7 @@ class Composition {
     }
     handleEvent(event) {
         console.log(event);
-        this.miniRando(100);
+        this.miniRando(10000);
     }
     gameOfLife(n = 100) {
         let thiscomp = this;
@@ -38,16 +38,11 @@ class Composition {
         // });
         let count = 0;
         Util.setIntervalX(function () {
-            let current = new Loc(thiscomp.bg, 0, 0).shiftIndex(count++);
-            let neighbors = current.get8Neighbors();
-            let activeNeighbors = 0;
-            for (let i = 0; i < neighbors.length; i++) {
-                const element = neighbors[i];
-                let val = thiscomp.bg.atLoc(element);
-                if (val > 0) activeNeighbors++;
-                debugger;
-            }
-            console.log("Game of life, cell", current, "active neighbors", activeNeighbors, "neighborhood", neighbors);
+            console.log("game round:", count, "before", thiscomp.bg.toString());
+            thiscomp.gameOfLifeRound();
+            thiscomp.refresh();
+            console.log("game round:", count, "after", thiscomp.bg.toString());
+            // console.log("Game of life, cell", current, "active neighbors", activeNeighbors, "neighborhood", neighbors);
             // const randomID = Util.d(thiscomp.nWide * thiscomp.nTall) - 1;
             // const randomCell = "bg_" + Util.n2Cell(randomID, thiscomp.bg);
             // let randomdiv = document.getElementById(randomCell);
@@ -56,6 +51,27 @@ class Composition {
             // thiscomp.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
             // thiscomp.refresh();
         }, 1000, n);
+    }
+    gameOfLifeRound() {
+        let count = 0;
+        let grid = this.bg;
+        // let start = new Loc(grid, 0, 0)
+        grid.map.forEach((val, key) => {
+            let current = Loc.new_fromCell(grid, key);
+            let neighbors = current.get8Neighbors();
+            let activeNeighbors = 0;
+            for (let i = 0; i < neighbors.length; i++) {
+                const element = neighbors[i];
+                let val = grid.atLoc(element);
+                if (val > 0) activeNeighbors++;
+                // debugger;
+            }
+            if (activeNeighbors < 2) grid.set(key, 0)
+            else if (activeNeighbors > 3) grid.set(key, 0)
+            else grid.set(key, val + 1);
+            this.queue_redraw(key);
+        });
+        this.refresh();
     }
     miniRando(n = 1) {
         let comporef = this;
@@ -67,7 +83,7 @@ class Composition {
             const oldval = comporef.get_bg(randomdiv.id);
             comporef.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
             comporef.refresh();
-        }, 250, n);
+        }, 0, n);
     }
     append(html) {
         const element = Util.$id(this.comptainer);
@@ -100,6 +116,9 @@ class Composition {
     set_bg(key, val) {
         if (!key.includes("_")) key = "bg_" + key;
         this.bg.map.set(key, val);
+        this.redrawList.push(key);
+    }
+    queue_redraw(key) {
         this.redrawList.push(key);
     }
     refresh() {
@@ -144,6 +163,11 @@ class GridArtist {
         cell.id = cellname;
         cell.title = cell.id;
         cell.className = "tile level" + val;
+        if (val > 10) {
+            const percent = val;
+            cell.style.color = "red";
+            cell.style.backgroundColor = "hsl(0, 0%, " + percent + "%)";
+        }
         // debugger;
         // Inner cell
         let inner_cell = document.createElement("div");
@@ -239,7 +263,7 @@ class Grid {
     }
     toString(): string {
         let vals = Array.from(this.map.values());
-        let result = "{";
+        let result = "{\n";
         for (let i = 0; i < vals.length; i++) {
             const element = vals[i];
             if (i % this.cols === 0) result += "\n> ";
@@ -306,17 +330,16 @@ class Loc {
     }
 
     static new_fromCell(grid = new Grid(5, 5), cellname) {
-        let regresult = cellname.match(/([A-Z]+)(\d+)/)
+        let regresult = cellname.match(/([A-Z]+)(\d+)/);
         let x = Util.abc2Num(regresult[1])
         let y = Number(regresult[2]);
-        let objresult = new Loc(grid, x, y);
-        // console.log(regresult)
-        // console.log(objresult)
 
-        return objresult;
+        return new Loc(grid, x, y);
     }
     static new_fromIndex(grid = new Grid(5, 5), n) {
-        return Loc.new_fromCell(grid, Util.n2Cell(n, grid));
+        let xy = Util.n2Xy(n, grid);
+        return new Loc(grid, xy.X, xy.Y)
+        // return Loc.new_fromCell(grid, Util.n2Cell(n, grid));
     }
     getCellname() {
         return Util.xy2Cell(this.x, this.y);
@@ -327,10 +350,11 @@ class Loc {
     shiftIndex(n = 1) {
         let newIndex = this.getIndex() + n;
         if (newIndex < 0 || newIndex >= this.reference_grid.size) return;
-        return Loc.new_fromIndex(this.reference_grid, this.getIndex() + n);
+        // return this;
+        return Loc.new_fromIndex(this.reference_grid, newIndex);
     }
     shiftY(n = 1) { return new Loc(this.reference_grid, this.x, this.y + n) };
-    shiftX(n = 1) { return new Loc(this.reference_grid, this.x + n, this.y + n) };
+    shiftX(n = 1) { return new Loc(this.reference_grid, this.x + n, this.y) };
     get8Neighbors() {
         return [this.shiftY(-1).shiftX(-1), this.shiftY(-1), this.shiftY(-1).shiftX(1),
         this.shiftX(-1), this.shiftX(1),
@@ -493,17 +517,22 @@ class Util {
         console.log("error in abc2Num");
         return -1;
     }
+    static indextoXY() {
+
+    }
     static cell2XY = function (cellname) {
 
     }
     static xy2Cell = function (x, y) {
         return Util.num2Abc(x).toUpperCase() + y;
     }
+
+    static n2Xy = function (n, aGrid = Util.GLOB.REFGRID) {
+        return { X: Math.floor(n % aGrid.cols), Y: Math.floor(n / aGrid.cols) }
+    }
     static n2Cell = function (n, aGrid = Util.GLOB.REFGRID) {
-        const cols = aGrid.cols;
-        let x = Math.floor(n % cols);
-        let y = Math.floor(n / cols);
-        return Util.xy2Cell(x, y);
+        let temp = Util.n2Xy(n, aGrid);
+        return Util.xy2Cell(temp.X, temp.Y);
     }
     static toFixedLength = function (input, length, padding?) {
         padding = padding || "0";
