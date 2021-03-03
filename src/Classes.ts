@@ -6,8 +6,8 @@ class Composition {
     TILEPX = 25;
     bg: Grid;
     fg: Grid;
-    nWide;
-    nTall;
+    nWide: number;
+    nTall: number;
     comptainer;
     options;
     redrawList: Array<string>;
@@ -23,7 +23,52 @@ class Composition {
         this.fg.name = "fg";
         this.redrawList = [];
     }
+    handleEvent(event) {
+        console.log(event);
+        this.miniRando(100);
+    }
+    gameOfLife(n = 100) {
+        let thiscomp = this;
+        // let activeCells = [];
 
+        // thiscomp.bg.map.forEach(function (val, key) {
+        //     if (val > 0) {
+        //         activeCells.push(key);
+        //     }
+        // });
+        let count = 0;
+        Util.setIntervalX(function () {
+            let current = new Loc(thiscomp.bg, 0, 0).shiftIndex(count++);
+            let neighbors = current.get8Neighbors();
+            let activeNeighbors = 0;
+            for (let i = 0; i < neighbors.length; i++) {
+                const element = neighbors[i];
+                let val = thiscomp.bg.atLoc(element);
+                if (val > 0) activeNeighbors++;
+                debugger;
+            }
+            console.log("Game of life, cell", current, "active neighbors", activeNeighbors, "neighborhood", neighbors);
+            // const randomID = Util.d(thiscomp.nWide * thiscomp.nTall) - 1;
+            // const randomCell = "bg_" + Util.n2Cell(randomID, thiscomp.bg);
+            // let randomdiv = document.getElementById(randomCell);
+            // Utils.update_div_value(randomdiv, String(Util.d(7)));
+            // const oldval = thiscomp.get_bg(randomdiv.id);
+            // thiscomp.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
+            // thiscomp.refresh();
+        }, 1000, n);
+    }
+    miniRando(n = 1) {
+        let comporef = this;
+        Util.setIntervalX(function () {
+            const randomID = Util.d(comporef.nWide * comporef.nTall) - 1;
+            const randomCell = "bg_" + Util.n2Cell(randomID, comporef.bg);
+            let randomdiv = document.getElementById(randomCell);
+            // Utils.update_div_value(randomdiv, String(Util.d(7)));
+            const oldval = comporef.get_bg(randomdiv.id);
+            comporef.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
+            comporef.refresh();
+        }, 250, n);
+    }
     append(html) {
         const element = Util.$id(this.comptainer);
         element.appendChild(html);
@@ -33,21 +78,39 @@ class Composition {
 
         // element.removeChild() = html;
     }
-    get_bg(key) {
-        return this.bg.map.get("bg_" + key);
+    fill(value = 0) {
+        const grid = this.bg;
+        for (let i = 0; i < grid.cols * grid.rows; i++) {
+            const cell = Util.n2Cell(i, grid);
+            grid.set(cell, value);
+            this.redrawList.push(grid.prefixKey(cell));
+        }
+        // this.bg.map.forEach((val, key) => {
+        //     this.redrawList.push(key);
+        // });
+    }
+    // static fixkey(aKey) {
+    //     let parts = aKey.split("_");
+    //     if(parts.length > 0)
+    // }
+    get_bg(key: string) {
+        if (key.includes("_")) return this.bg.map.get(key);
+        else return this.bg.map.get("bg_" + key);
     }
     set_bg(key, val) {
-        this.bg.map.set("bg_" + key, val);
-        this.redrawList.push("bg_" + key);
+        if (!key.includes("_")) key = "bg_" + key;
+        this.bg.map.set(key, val);
+        this.redrawList.push(key);
     }
     refresh() {
         this.redrawList.forEach(id => {
             // const bgid = "bg_"+id
             let element = Util.$id(id);
-            const val = this.bg.map.get(id);
+            // const val = this.bg.map.get(id);
             // debugger;
             let result = GridArtist.htmlForCell(this.bg, id);
-            element.innerHTML = result.innerHTML;
+            element.outerHTML = result.outerHTML;
+            // element = result;
             // element = result;
             // element.innerText = String(val);
         });
@@ -76,7 +139,8 @@ class GridArtist {
     }
     static htmlForCell(aGrid, cellname) {
         let cell = document.createElement("div");
-        let val = aGrid.map.get(cellname) ? aGrid.map.get(cellname) : -1;
+        let val = aGrid.map.get(cellname);
+        if (val === undefined) val = -1;
         cell.id = cellname;
         cell.title = cell.id;
         cell.className = "tile level" + val;
@@ -161,6 +225,18 @@ class Grid {
             this.map.set(Util.n2Cell(i, this), val);
         }
     }
+    prefixKey(aKey) { return this.name + "_" + aKey };
+    get(key) {
+        if (key.includes("_")) return this.map.get(key);
+        else return this.map.get(this.name + "_" + key);
+    }
+    set(key, val) {
+        if (key.includes("_")) this.map.set(key, val);
+        else this.map.set(this.name + "_" + key, val);
+    }
+    atLoc(Location: Loc) {
+        return this.get(Location.getCellname());
+    }
     toString(): string {
         let vals = Array.from(this.map.values());
         let result = "{";
@@ -222,8 +298,10 @@ class Loc {
     constructor(grid = new Grid(5, 5), x = 0, y = 0) {
         this.x = x;
         if (this.x > grid.cols) this.x -= grid.cols;
+        if (this.x < 0) this.x += grid.cols;
         this.y = y;
         if (this.y > grid.rows) this.y -= grid.rows;
+        if (this.y < 0) this.y += grid.rows;
         this.reference_grid = grid;
     }
 
@@ -253,6 +331,12 @@ class Loc {
     }
     shiftY(n = 1) { return new Loc(this.reference_grid, this.x, this.y + n) };
     shiftX(n = 1) { return new Loc(this.reference_grid, this.x + n, this.y + n) };
+    get8Neighbors() {
+        return [this.shiftY(-1).shiftX(-1), this.shiftY(-1), this.shiftY(-1).shiftX(1),
+        this.shiftX(-1), this.shiftX(1),
+        this.shiftY(1).shiftX(-1), this.shiftY(1), this.shiftY(1).shiftX(1),
+        ]
+    }
 }
 
 class Link<T1, T2> {
@@ -351,6 +435,10 @@ class Util {
         LOWER: "abcdefghijklmnopqrstuvqxyz",
         UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     }
+
+    static d(n) {
+        return Math.floor(n * Math.random()) + 1;
+    }
     static mapToObj(map) {
         const obj = {}
         for (let [k, v] of map)
@@ -413,12 +501,9 @@ class Util {
     }
     static n2Cell = function (n, aGrid = Util.GLOB.REFGRID) {
         const cols = aGrid.cols;
-
-        // let maptemp = Utils.MAPS.id2cell.get(n);
-        // if (maptemp !== undefined) return maptemp;
-        let col = Math.floor(n / cols);
-        let row = (col > 0) ? n % col : n;
-        return Util.xy2Cell(row, col);
+        let x = Math.floor(n % cols);
+        let y = Math.floor(n / cols);
+        return Util.xy2Cell(x, y);
     }
     static toFixedLength = function (input, length, padding?) {
         padding = padding || "0";
@@ -478,7 +563,17 @@ class Util {
         console.log("Done...", result)
         return result;
     }
+    static setIntervalX(callback, delay, repetitions) {
+        var x = 0;
+        var intervalID = window.setInterval(function () {
 
+            callback();
+
+            if (++x === repetitions) {
+                window.clearInterval(intervalID);
+            }
+        }, delay);
+    }
     static cyclemanager(func, hz, count) {
 
         let cycle = 0;

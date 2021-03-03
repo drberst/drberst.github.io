@@ -9,9 +9,9 @@
 
 const GLOB = { // Universal constants
     HEIGHT: 8, //Height / Y
-    WIDTH: 16, //Width  / X
-    COUNT: 8 * 16,
-    REFGRID: new Grid(16, 8),
+    WIDTH: 8, //Width  / X
+    COUNT: 8 * 8,
+    REFGRID: new Grid(8, 8),
     TILEPX: 50,
     SPACING: 1,
     container_div: "#layer_bg",
@@ -22,20 +22,20 @@ const MAPS = { // Reality arisen from constants
     id2cell: new Map(),
     cell2val: new Map()
 }
-const FUN = { // Utility functions that underly reality
-    d: function (n) {
-        return Math.floor(n * Math.random()) + 1;
-    }
-}
+// const FUN = { // Utility functions that underly reality
+//     d: function (n) {
+//         return Math.floor(n * Math.random()) + 1;
+//     }
+// }
 
 const SPELLS = { // Functions that alter reality.
     CrazyTiles: function (n) {
         let count = 0;
         let intervalid = setInterval(function () {
-            const randomID = FUN.d(GLOB.COUNT) - 1;
+            const randomID = Util.d(GLOB.COUNT) - 1;
             const randomCell = Util.n2Cell(randomID);
             let randomdiv = document.getElementById(randomCell);
-            // Utils.update_div_value(randomdiv, String(FUN.d(7)));
+            // Utils.update_div_value(randomdiv, String(Util.d(7)));
             SPELLS.Increment(randomCell);
             Util.update_div_value(randomdiv);
             count++;
@@ -58,39 +58,39 @@ let stages = {
             Util.update_div_value(document.getElementById(key));
         });
     },
-    init: function () {
-        let index = 0;
-        let aPage: HTMLDivElement = document.querySelector(GLOB.container_div);
-        const marg = 1; //0px
-        aPage.innerHTML = "";
-        aPage.style.width = `${(GLOB.TILEPX + marg) * GLOB.WIDTH}px`;
-        aPage.style.height = `${(GLOB.TILEPX + marg) * GLOB.HEIGHT}px`;
-        document.querySelector(GLOB.container_div)
-        this.MAX = GLOB.HEIGHT * GLOB.WIDTH;
+    // init: function () {
+    //     let index = 0;
+    //     let aPage: HTMLDivElement = document.querySelector(GLOB.container_div);
+    //     const marg = 1; //0px
+    //     aPage.innerHTML = "";
+    //     aPage.style.width = `${(GLOB.TILEPX + marg) * GLOB.WIDTH}px`;
+    //     aPage.style.height = `${(GLOB.TILEPX + marg) * GLOB.HEIGHT}px`;
+    //     document.querySelector(GLOB.container_div)
+    //     this.MAX = GLOB.HEIGHT * GLOB.WIDTH;
 
-        for (let rows = 0; rows < GLOB.HEIGHT; rows++) {
-            let row_wrapper = document.createElement('div');
-            row_wrapper.id = "row_" + rows;
-            aPage.append(row_wrapper)
-            for (let cols = 0; cols < GLOB.WIDTH; cols++) {
-                let cellname = Util.xy2Cell(cols, rows);
-                let div = document.createElement('div');
+    //     for (let rows = 0; rows < GLOB.HEIGHT; rows++) {
+    //         let row_wrapper = document.createElement('div');
+    //         row_wrapper.id = "row_" + rows;
+    //         aPage.append(row_wrapper)
+    //         for (let cols = 0; cols < GLOB.WIDTH; cols++) {
+    //             let cellname = Util.xy2Cell(cols, rows);
+    //             let div = document.createElement('div');
 
-                div.id = cellname;
-                div.title = String(index);
-                // div.tabIndex = 0;
+    //             div.id = cellname;
+    //             div.title = String(index);
+    //             // div.tabIndex = 0;
 
-                MAPS.id2cell.set(index, cellname);
+    //             MAPS.id2cell.set(index, cellname);
 
-                // MAPS.cell2val.set(cellname, 0);
-                Util.update_div_value(div);
-                row_wrapper.append(div)
+    //             // MAPS.cell2val.set(cellname, 0);
+    //             Util.update_div_value(div);
+    //             row_wrapper.append(div)
 
-                index++;
-            }
-        }
-        console.log(this);
-    },
+    //             index++;
+    //         }
+    //     }
+    //     console.log(this);
+    // },
     randomshit: function (aGrid) {
         let d = function (n) {
             return Math.floor(n * Math.random()) + 1;
@@ -98,7 +98,7 @@ let stages = {
         let count = 0;
         let intervalid = setInterval(function () {
             let randomdiv = document.querySelector("#" + Util.n2Cell(d(64), aGrid));
-            Util.update_div_value(randomdiv, String(FUN.d(7)));
+            Util.update_div_value(randomdiv, String(Util.d(7)));
             count++;
             if (count > 100) clearInterval(intervalid);
         }, 100);
@@ -125,13 +125,7 @@ class Nav {
         }
     }
 }
-function BuildGrid() {
-    document.documentElement.style.setProperty('--tileSize', GLOB.TILEPX + 'px');
-    document.documentElement.style.setProperty('--totalWidth', GLOB.WIDTH * (GLOB.TILEPX + GLOB.SPACING) + 'px');
-    stages.init();
-    // TurnOnButtons();
-    // stages.randomshit();
-};
+
 
 function WriteNumber() {
     // let startcell = 0;
@@ -159,22 +153,18 @@ function WriteNumber() {
 }
 
 function miniRando() {
-    const randomID = FUN.d(GLOB.COUNT) - 1;
-    const randomCell = Util.n2Cell(randomID);
+    const randomID = Util.d(GLOB.COUNT) - 1;
+    const randomCell = "bg_" + Util.n2Cell(randomID);
     let randomdiv = document.getElementById(randomCell);
-    // Utils.update_div_value(randomdiv, String(FUN.d(7)));
-    SPELLS.Increment(randomCell);
-    Util.update_div_value(randomdiv);
-}
-function Automata() {
-    // SPELLS.CrazyTiles(10);
-    Util.cyclemanager(miniRando, 1000, 300);
+    // Utils.update_div_value(randomdiv, String(Util.d(7)));
+    // const oldval = aComp.get_bg(randomdiv.id);
+    // aComp.set_bg(randomdiv.id, oldval + 1);
 }
 
 
-function TurnOnButtons() {
+function TurnOnButtons(aComp: Composition) {
     document.getElementById("b0").addEventListener("click", stages.reset);
-    document.getElementById("b1").addEventListener("click", BuildGrid);
+    document.getElementById("b1").addEventListener("click", aComp);
     document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
     document.getElementById("b3").addEventListener("click", WriteNumber);
     (document.getElementById("b4") as HTMLButtonElement).value = "StampNumber";
@@ -222,11 +212,26 @@ import { Grid, Loc, Composition } from "./Classes.js";
 function CompositionTesting() {
     let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
     comp.init();
-    comp.set_bg("B1", 55);
+    // comp.set_bg("B1", 5);
     // debugger;
+    comp.fill(5);
     comp.refresh();
+    TurnOnButtons(comp);
+    // comp.miniRando(100);
+    // comp.gameOfLife();
+    // n2CellTesting(comp);
 }
 CompositionTesting();
+
+function n2CellTesting(aComp: Composition) {
+    let MAX = aComp.nWide * aComp.nTall;
+    for (let i = 0; i < MAX; i++) {
+
+        const randomCell = "bg_" + Util.n2Cell(i, aComp.bg);
+        console.log("testing", i, randomCell);
+
+    }
+}
 // BuildGrid();
 // TurnOnButtons();
 // let eng = new Being();

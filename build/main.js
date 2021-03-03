@@ -1,9 +1,9 @@
 6;
 const GLOB = {
     HEIGHT: 8,
-    WIDTH: 16,
-    COUNT: 8 * 16,
-    REFGRID: new Grid(16, 8),
+    WIDTH: 8,
+    COUNT: 8 * 8,
+    REFGRID: new Grid(8, 8),
     TILEPX: 50,
     SPACING: 1,
     container_div: "#layer_bg",
@@ -14,16 +14,11 @@ const MAPS = {
     id2cell: new Map(),
     cell2val: new Map()
 };
-const FUN = {
-    d: function (n) {
-        return Math.floor(n * Math.random()) + 1;
-    }
-};
 const SPELLS = {
     CrazyTiles: function (n) {
         let count = 0;
         let intervalid = setInterval(function () {
-            const randomID = FUN.d(GLOB.COUNT) - 1;
+            const randomID = Util.d(GLOB.COUNT) - 1;
             const randomCell = Util.n2Cell(randomID);
             let randomdiv = document.getElementById(randomCell);
             SPELLS.Increment(randomCell);
@@ -49,32 +44,6 @@ let stages = {
             Util.update_div_value(document.getElementById(key));
         });
     },
-    init: function () {
-        let index = 0;
-        let aPage = document.querySelector(GLOB.container_div);
-        const marg = 1;
-        aPage.innerHTML = "";
-        aPage.style.width = `${(GLOB.TILEPX + marg) * GLOB.WIDTH}px`;
-        aPage.style.height = `${(GLOB.TILEPX + marg) * GLOB.HEIGHT}px`;
-        document.querySelector(GLOB.container_div);
-        this.MAX = GLOB.HEIGHT * GLOB.WIDTH;
-        for (let rows = 0; rows < GLOB.HEIGHT; rows++) {
-            let row_wrapper = document.createElement('div');
-            row_wrapper.id = "row_" + rows;
-            aPage.append(row_wrapper);
-            for (let cols = 0; cols < GLOB.WIDTH; cols++) {
-                let cellname = Util.xy2Cell(cols, rows);
-                let div = document.createElement('div');
-                div.id = cellname;
-                div.title = String(index);
-                MAPS.id2cell.set(index, cellname);
-                Util.update_div_value(div);
-                row_wrapper.append(div);
-                index++;
-            }
-        }
-        console.log(this);
-    },
     randomshit: function (aGrid) {
         let d = function (n) {
             return Math.floor(n * Math.random()) + 1;
@@ -82,7 +51,7 @@ let stages = {
         let count = 0;
         let intervalid = setInterval(function () {
             let randomdiv = document.querySelector("#" + Util.n2Cell(d(64), aGrid));
-            Util.update_div_value(randomdiv, String(FUN.d(7)));
+            Util.update_div_value(randomdiv, String(Util.d(7)));
             count++;
             if (count > 100)
                 clearInterval(intervalid);
@@ -108,12 +77,6 @@ Nav.zDivrections = function (div) {
         right: id + 1
     };
 };
-function BuildGrid() {
-    document.documentElement.style.setProperty('--tileSize', GLOB.TILEPX + 'px');
-    document.documentElement.style.setProperty('--totalWidth', GLOB.WIDTH * (GLOB.TILEPX + GLOB.SPACING) + 'px');
-    stages.init();
-}
-;
 function WriteNumber() {
     console.log("writenumber");
     let pattern_1 = [
@@ -131,18 +94,13 @@ function WriteNumber() {
     mainstage.print("layer_1");
 }
 function miniRando() {
-    const randomID = FUN.d(GLOB.COUNT) - 1;
-    const randomCell = Util.n2Cell(randomID);
+    const randomID = Util.d(GLOB.COUNT) - 1;
+    const randomCell = "bg_" + Util.n2Cell(randomID);
     let randomdiv = document.getElementById(randomCell);
-    SPELLS.Increment(randomCell);
-    Util.update_div_value(randomdiv);
 }
-function Automata() {
-    Util.cyclemanager(miniRando, 1000, 300);
-}
-function TurnOnButtons() {
+function TurnOnButtons(aComp) {
     document.getElementById("b0").addEventListener("click", stages.reset);
-    document.getElementById("b1").addEventListener("click", BuildGrid);
+    document.getElementById("b1").addEventListener("click", aComp);
     document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
     document.getElementById("b3").addEventListener("click", WriteNumber);
     document.getElementById("b4").value = "StampNumber";
@@ -178,7 +136,15 @@ import { Grid, Composition } from "./Classes.js";
 function CompositionTesting() {
     let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
     comp.init();
-    comp.set_bg("B1", 55);
+    comp.fill(5);
     comp.refresh();
+    TurnOnButtons(comp);
 }
 CompositionTesting();
+function n2CellTesting(aComp) {
+    let MAX = aComp.nWide * aComp.nTall;
+    for (let i = 0; i < MAX; i++) {
+        const randomCell = "bg_" + Util.n2Cell(i, aComp.bg);
+        console.log("testing", i, randomCell);
+    }
+}
