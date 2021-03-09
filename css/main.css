@@ -58,6 +58,9 @@ body {
     /* top: 0px; */
     /* background-color: rgb(80, 80, 80); */
 }
+/* .row {
+    height: var(--tileSize);
+} */
 .tile {
     /***TEXT*/
     font-family: "VG323", monospace;
@@ -68,7 +71,7 @@ body {
     line-height: var(--tileSize);
     height: var(--tileSize);
     width: var(--tileSize);
-    margin: 0.5px;
+    /* margin: 0.5px; */
     display: inline-block;
     /* place-self: center; */
     /* place-items: center; */

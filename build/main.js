@@ -1,12 +1,11 @@
-6;
-let h = 32;
-let w = 32;
+let h = 50;
+let w = 50;
 const GLOB = {
     HEIGHT: h,
     WIDTH: w,
     COUNT: h * w,
     REFGRID: new Grid(w, h),
-    TILEPX: 25,
+    TILEPX: 16,
     SPACING: 1,
     container_div: "#layer_bg",
     LOWER: "abcdefghijklmnopqrstuvqxyz",
@@ -138,8 +137,11 @@ import { Grid, Composition } from "./Classes.js";
 function CompositionTesting() {
     let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
     comp.init();
+    comp.fillWithFunc(function () {
+        return Util.d(4) === 1;
+    });
+    comp.refresh();
     TurnOnButtons(comp);
-    comp.miniRando(100);
     comp.gameOfLife();
 }
 CompositionTesting();

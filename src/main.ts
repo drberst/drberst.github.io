@@ -5,15 +5,15 @@
 4. Using pieces 1-3 for stage 2 complexity
 5. Assembling into final complexity
 */
-6
-let h = 32;
-let w = 32;
+
+let h = 50;
+let w = 50;
 const GLOB = { // Universal constants
     HEIGHT: h, //Height / Y
     WIDTH: w, //Width  / X
     COUNT: h * w,
     REFGRID: new Grid(w, h),
-    TILEPX: 25,
+    TILEPX: 16,
     SPACING: 1,
     container_div: "#layer_bg",
     LOWER: "abcdefghijklmnopqrstuvqxyz",
@@ -215,10 +215,14 @@ function CompositionTesting() {
     comp.init();
     // comp.set_bg("B1", 5);
     // debugger;
-    // comp.fill(9);
-    // comp.refresh();
+    // comp.fill(0);
+    comp.fillWithFunc(function () {
+        return Util.d(4) === 1;
+    })
+    comp.refresh();
     TurnOnButtons(comp);
-    comp.miniRando(100);
+    // Util.setIntervalX(() => comp.miniRando(10), 0, 100);
+    // comp.miniRando(1000);
     comp.gameOfLife();
     // n2CellTesting(comp);
 }

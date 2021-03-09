@@ -5,10 +5,10 @@ export { Loc, Grid, Scene, Link, Composition, Util };
 class Composition {
     TILEPX = 25;
     bg: Grid;
-    fg: Grid;
+    // fg: Grid;
     nWide: number;
     nTall: number;
-    comptainer;
+    comptainer_id;
     options;
     redrawList: Array<string>;
     constructor(options) {
@@ -16,16 +16,16 @@ class Composition {
         this.TILEPX = options.TILEPX ? options.TILEPX : 25;
         this.nWide = options.nWide ? options.nWide : 8;
         this.nTall = options.nTall ? options.nTall : 8;
-        this.comptainer = options.comptainer ? options.comptainer : "compo" + this.nWide + this.nTall;
+        this.comptainer_id = options.comptainer ? options.comptainer : "compo" + this.nWide + this.nTall;
         this.bg = new Grid(this.nWide, this.nTall);
         this.bg.name = "bg";
-        this.fg = new Grid(this.nWide, this.nTall);
-        this.fg.name = "fg";
+        // this.fg = new Grid(this.nWide, this.nTall);
+        // this.fg.name = "fg";
         this.redrawList = [];
     }
     handleEvent(event) {
         console.log(event);
-        this.miniRando(10000);
+        this.gameOfLife(100);
     }
     gameOfLife(n = 100) {
         let thiscomp = this;
@@ -36,12 +36,10 @@ class Composition {
         //         activeCells.push(key);
         //     }
         // });
-        let count = 0;
         Util.setIntervalX(function () {
-            console.log("game round:", count, "before", thiscomp.bg.toString());
+            // console.log(thiscomp, "game round:", count++, "before", thiscomp.bg.toString());
             thiscomp.gameOfLifeRound();
-            thiscomp.refresh();
-            console.log("game round:", count, "after", thiscomp.bg.toString());
+            // console.log("game round:", count, "after", thiscomp.bg.toString());
             // console.log("Game of life, cell", current, "active neighbors", activeNeighbors, "neighborhood", neighbors);
             // const randomID = Util.d(thiscomp.nWide * thiscomp.nTall) - 1;
             // const randomCell = "bg_" + Util.n2Cell(randomID, thiscomp.bg);
@@ -50,9 +48,10 @@ class Composition {
             // const oldval = thiscomp.get_bg(randomdiv.id);
             // thiscomp.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
             // thiscomp.refresh();
-        }, 1000, n);
+        }, 0, n);
     }
     gameOfLifeRound() {
+
         let count = 0;
         let grid = this.bg;
         // let start = new Loc(grid, 0, 0)
@@ -62,22 +61,25 @@ class Composition {
             let activeNeighbors = 0;
             for (let i = 0; i < neighbors.length; i++) {
                 const element = neighbors[i];
+                // let html = Util.$id(key);
+                // html.style.fontWeight = "bold";
                 let val = grid.atLoc(element);
                 if (val > 0) activeNeighbors++;
                 // debugger;
             }
-            if (activeNeighbors < 2) grid.set(key, 0)
-            else if (activeNeighbors > 3) grid.set(key, 0)
-            else grid.set(key, val + 1);
-            this.queue_redraw(key);
+
+            if (val > 0 && activeNeighbors != 2) grid.set(key, 0);
+            if (activeNeighbors == 3) grid.set(key, 1)
+            // else grid.set(key, 0);
+            if (grid.get(key) != val) this.queue_redraw(key);
         });
         this.refresh();
     }
-    miniRando(n = 1) {
+    miniRando(n = 100) {
         let comporef = this;
         Util.setIntervalX(function () {
             const randomID = Util.d(comporef.nWide * comporef.nTall) - 1;
-            const randomCell = "bg_" + Util.n2Cell(randomID, comporef.bg);
+            const randomCell = Util.n2Cell(randomID, comporef.bg);
             let randomdiv = document.getElementById(randomCell);
             // Utils.update_div_value(randomdiv, String(Util.d(7)));
             const oldval = comporef.get_bg(randomdiv.id);
@@ -86,20 +88,24 @@ class Composition {
         }, 0, n);
     }
     append(html) {
-        const element = Util.$id(this.comptainer);
+        const element = Util.$id(this.comptainer_id);
         element.appendChild(html);
     }
-    update(html) {
-        const element = Util.$id(this.comptainer);
-
-        // element.removeChild() = html;
+    fillWithFunc(aFunc) {
+        const grid = this.bg;
+        for (let i = 0; i < grid.cols * grid.rows; i++) {
+            const cell = Util.n2Cell(i, grid);
+            let value = aFunc();
+            grid.set(cell, value);
+            this.redrawList.push(cell);
+        }
     }
     fill(value = 0) {
         const grid = this.bg;
         for (let i = 0; i < grid.cols * grid.rows; i++) {
             const cell = Util.n2Cell(i, grid);
             grid.set(cell, value);
-            this.redrawList.push(grid.prefixKey(cell));
+            this.redrawList.push(cell);
         }
         // this.bg.map.forEach((val, key) => {
         //     this.redrawList.push(key);
@@ -109,32 +115,49 @@ class Composition {
     //     let parts = aKey.split("_");
     //     if(parts.length > 0)
     // }
+
     get_bg(key: string) {
-        if (key.includes("_")) return this.bg.map.get(key);
-        else return this.bg.map.get("bg_" + key);
+        return this.bg.get(key);
     }
     set_bg(key, val) {
-        if (!key.includes("_")) key = "bg_" + key;
-        this.bg.map.set(key, val);
+        this.bg.set(key, val);
         this.redrawList.push(key);
     }
     queue_redraw(key) {
         this.redrawList.push(key);
     }
+    refresh2() {
+        console.log("Drawing:", this.redrawList.length, "elements");
+        console.time();
+
+        GridArtist.makeArt(Util.$id(this.comptainer_id), this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
+        // let node = Util.$id(this.comptainer_id); debugger;
+        // node.innerHTML = gridHTML.innerHTML;
+        // Util.$id(this.comptainer_id).replaceWith(gridHTML);
+
+        this.redrawList = [];
+        console.timeEnd();
+
+    }
     refresh() {
+        console.time();
+        console.log("Drawing:", this.redrawList.length, "elements");
+
         this.redrawList.forEach(id => {
             // const bgid = "bg_"+id
             let element = Util.$id(id);
-            // const val = this.bg.map.get(id);
             // debugger;
             let result = GridArtist.htmlForCell(this.bg, id);
-            element.outerHTML = result.outerHTML;
-            // element = result;
+            element.replaceWith(result);
+            // element.outerHTML = result.outerHTML;
+            // element.textContent = result.textContent;
+            // element.className = result.className;
             // element = result;
             // element.innerText = String(val);
         });
         // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { TILEPX: 24, name: this.comptainer + "-grid" })
         // this.update(gridHTML);
+        console.timeEnd();
         this.redrawList = [];
     }
     init() {
@@ -156,17 +179,18 @@ class GridArtist {
         GridArtist.makeArt(wrapper, aGrid, options);
         return wrapper;
     }
+
     static htmlForCell(aGrid, cellname) {
         let cell = document.createElement("div");
-        let val = aGrid.map.get(cellname);
+        let val = aGrid.get(cellname);
         if (val === undefined) val = -1;
         cell.id = cellname;
-        cell.title = cell.id;
+        cell.title = String(Loc.new_fromCell(aGrid, cellname).getIndex());
         cell.className = "tile level" + val;
         if (val > 10) {
             const percent = val;
-            cell.style.color = "red";
-            cell.style.backgroundColor = "hsl(0, 0%, " + percent + "%)";
+            // cell.style.color = "red";
+            cell.style.backgroundColor = "hsl(" + val * 3.6 + ", 75%, " + percent + "%)";
         }
         // debugger;
         // Inner cell
@@ -180,7 +204,7 @@ class GridArtist {
         cell.appendChild(inner_cell);
         return cell;
     }
-    static makeArt(wrapper, aGrid: Grid, options) {
+    static makeArt(wrapper: HTMLElement, aGrid: Grid, options): HTMLElement {
         let index = 0;
 
         const marg = options.SPACING;
@@ -188,15 +212,17 @@ class GridArtist {
         wrapper.style.width = `${(options.TILEPX + marg) * aGrid.cols}px`;
         wrapper.style.height = `${(options.TILEPX + marg) * aGrid.rows}px`;
 
+
         for (let rows = 0; rows < aGrid.rows; rows++) {
             let row_wrapper = document.createElement("div");
             row_wrapper.id = options.name + "_row_" + rows;
-            row_wrapper.style.width = wrapper.style.width;
+            row_wrapper.style.width = options.TILEPX * aGrid.cols + "px"; //+wrapper.style.width;
+            row_wrapper.style.height = options.TILEPX + "px";
             // debugger;
             wrapper.appendChild(row_wrapper);
             for (let cols = 0; cols < aGrid.cols; cols++) {
                 let cellname = Util.xy2Cell(cols, rows);
-                let cell = GridArtist.htmlForCell(aGrid, options.name + "_" + cellname);
+                let cell = GridArtist.htmlForCell(aGrid, cellname);
                 // if (div.innerHTML.length === 0
                 //     || div.innerHTML === "undefined") {
                 //     div.innerHTML = `<div class=tile2line>${options.name}<br>${cellname}</div>`;
@@ -213,12 +239,6 @@ class GridArtist {
         }
         // console.log(this);
         return wrapper;
-    }
-    static useStamp(aStamp: Grid, aGrid: Grid) {
-        let target_cells = aStamp.map.keys();
-        for (const element of target_cells) {
-            aGrid.map.set(element, aGrid.map.get(element));
-        }
     }
 };
 
@@ -249,14 +269,21 @@ class Grid {
             this.map.set(Util.n2Cell(i, this), val);
         }
     }
-    prefixKey(aKey) { return this.name + "_" + aKey };
+    // prefixKey(aKey) { return this.name + "_" + aKey };
     get(key) {
-        if (key.includes("_")) return this.map.get(key);
-        else return this.map.get(this.name + "_" + key);
+        if (key.includes("_")) {
+            console.log("got one at GET! key=", key);
+            debugger;
+            return this.map.get(key.split("_")[1]);
+        }
+        else return this.map.get(key);
     }
     set(key, val) {
-        if (key.includes("_")) this.map.set(key, val);
-        else this.map.set(this.name + "_" + key, val);
+        if (key.includes("_")) {
+            console.log("got one at SET! key=", key);
+            this.map.set(key.split("_")[1], val);
+        }
+        else this.map.set(key, val);
     }
     atLoc(Location: Loc) {
         return this.get(Location.getCellname());
@@ -269,21 +296,21 @@ class Grid {
             if (i % this.cols === 0) result += "\n> ";
             result += element;
         }
-        return result + "\n}\n";
+        return result + "\n}";
     }
     toHTML() {
         let art = GridArtist.makeArt(this.name, this, { TILEPX: 24, name: "G" + this.name });
 
     }
     useStamp(aStamp: Grid) {
-        console.log("Applying Stamp=", aStamp.toString())
-        console.log("Before:", "Grid=", this.toString());
-        console.log("After:", "Grid=", this.toString());
+        // console.log("Applying Stamp=", aStamp.toString())
+        // console.log("Before:", "Grid=", this.toString());
+        // console.log("After:", "Grid=", this.toString());
         let target_cells = aStamp.map.keys();
 
         for (const element of target_cells) {
             if (element === " " || element === ".") continue;
-            this.map.set(element, aStamp.map.get(element));
+            this.map.set(element, aStamp.get(element));
         }
     }
     fromAscii(iAscii, origin = new Loc(this, 0, 0)) {
@@ -319,6 +346,7 @@ class Loc {
     public x: number;
     public y: number;
     public reference_grid: Grid;
+
     constructor(grid = new Grid(5, 5), x = 0, y = 0) {
         this.x = x;
         if (this.x > grid.cols) this.x -= grid.cols;
@@ -331,6 +359,7 @@ class Loc {
 
     static new_fromCell(grid = new Grid(5, 5), cellname) {
         let regresult = cellname.match(/([A-Z]+)(\d+)/);
+        // if (cellname.length > 3) debugger;
         let x = Util.abc2Num(regresult[1])
         let y = Number(regresult[2]);
 
@@ -512,6 +541,7 @@ class Util {
         // const Utils.GLOB.UPPER = "abcdefghijklmnopqrstuvqxyz";
         abc = abc.toUpperCase();
         if (abc.length === 1) return Util.GLOB.UPPER.indexOf(abc);
+        if (abc.length === 2) return Util.GLOB.UPPER.length + Util.abc2Num(abc.substring(1));
         // if (abc.length === 2) return GLOB.UPPER.indexOf(abc.charAt(0)) + GLOB.UPPER.indexOf(abc.charAt(1))
 
         console.log("error in abc2Num");
