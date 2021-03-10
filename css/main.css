@@ -21,9 +21,9 @@
 }
 
 body {
-    margin: 0px 60px;
+    /* margin: 0px 60px; */
     /*** dot grid background*/
-    background: rgb(66, 66, 66);
+    background: rgb(17, 17, 17);
     /* background-image: radial-gradient(rgba(211, 162, 0, 0.274) 1px, transparent 0); */
     /* background-size: 50px 50px; */
     /* background-position: -19px -19px; */
@@ -32,27 +32,40 @@ body {
 #writable_area {
     /* grid-column-start: 1; */
     /* margin: auto; */
-    /* width: 80%; */
+    /* width: var(--totalWidth); */
     color: rgb(240, 240, 240);
-    background: rgb(14, 14, 14);
+    background: rgb(41, 41, 41);
     /* border-radius: 10px; */
     padding: 1em 2em;
     position: relative;
     /* width: var(--totalWidth); */
 }
+#layers > * {
+    position: absolute;
+    top: -2em;
+    left: var(--totalWidth);
+    margin-left: 100px;
+}
 #outer_container {
     /* width: var(--totalWidth); */
     /* height: 200px; */
     background-color: rgb(59, 59, 59);
-    position: relative;
+    /* position: relative; */
 }
-
+canvas {
+    top: calc(var(--totalWidth) * -10);
+    width: var(--totalWidth);
+    z-index: 1;
+    /* position: relative; */
+    display: inline-block;
+}
 .container {
     /* width: 200px; */
     /* height: 200px; */
     width: var(--totalWidth);
 
-    position: relative;
+    /* position: relative; */
+    display: inline;
     /* display: none; */
     /* left: 50%; */
     /* top: 0px; */

@@ -1,4 +1,4 @@
-export { Loc, Grid, Scene, Link, Composition, Util };
+export { Loc, Grid, Composition, Util };
 
 //! ------------------------------------------------------------------------------------------ PRIMARY
 
@@ -10,7 +10,7 @@ class Composition {
     nTall: number;
     comptainer_id;
     options;
-    redrawList: Array<string>;
+    redrawList: Set<string>;
     constructor(options) {
         this.options = options;
         this.TILEPX = options.TILEPX ? options.TILEPX : 25;
@@ -21,7 +21,7 @@ class Composition {
         this.bg.name = "bg";
         // this.fg = new Grid(this.nWide, this.nTall);
         // this.fg.name = "fg";
-        this.redrawList = [];
+        this.redrawList = new Set();
     }
     handleEvent(event) {
         console.log(event);
@@ -52,10 +52,10 @@ class Composition {
     }
     gameOfLifeRound() {
 
-        let count = 0;
         let grid = this.bg;
         // let start = new Loc(grid, 0, 0)
-        grid.map.forEach((val, key) => {
+        let map = new Map(grid.map);
+        map.forEach((val, key) => {
             let current = Loc.new_fromCell(grid, key);
             let neighbors = current.get8Neighbors();
             let activeNeighbors = 0;
@@ -64,40 +64,58 @@ class Composition {
                 // let html = Util.$id(key);
                 // html.style.fontWeight = "bold";
                 let val = grid.atLoc(element);
-                if (val > 0) activeNeighbors++;
+                if (val == 1) activeNeighbors++;
                 // debugger;
             }
-
-            if (val > 0 && activeNeighbors != 2) grid.set(key, 0);
-            if (activeNeighbors == 3) grid.set(key, 1)
+            let newval = 0;
+            if (val > 0) {
+                if (activeNeighbors == 2 || activeNeighbors == 3) {
+                    newval = 1;
+                }
+            } else if (activeNeighbors == 3) {
+                newval = 1;
+            }
+            grid.set(key, newval);
             // else grid.set(key, 0);
-            if (grid.get(key) != val) this.queue_redraw(key);
+            if (map.get(key) != grid.map.get(key))
+                this.queue_redraw(key);
         });
         this.refresh();
     }
     miniRando(n = 100) {
         let comporef = this;
         Util.setIntervalX(function () {
-            const randomID = Util.d(comporef.nWide * comporef.nTall) - 1;
-            const randomCell = Util.n2Cell(randomID, comporef.bg);
-            let randomdiv = document.getElementById(randomCell);
-            // Utils.update_div_value(randomdiv, String(Util.d(7)));
-            const oldval = comporef.get_bg(randomdiv.id);
-            comporef.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
-            comporef.refresh();
-        }, 0, n);
+            for (let index = 0; index < n / 10; index++) {
+                const randomID = Util.d(comporef.nWide * comporef.nTall) - 1;
+                const randomCell = Util.n2Cell(randomID, comporef.bg);
+                let randomdiv = document.getElementById(randomCell);
+                const oldval = comporef.get_bg(randomdiv.id);
+                comporef.set_bg(randomdiv.id, oldval ? oldval + 1 : 1);
+            }
+            comporef.refresh()
+
+        }, 0, n / 10);
+        // Util.setIntervalX(function () {
+        // }, 1000, n);
     }
     append(html) {
         const element = Util.$id(this.comptainer_id);
         element.appendChild(html);
     }
+    increment(key) {
+        this.set_bg(key, this.get_bg(key) + 1);
+    }
+    decrement(key) {
+        this.set_bg(key, this.get_bg(key) - 1);
+    }
+
     fillWithFunc(aFunc) {
         const grid = this.bg;
         for (let i = 0; i < grid.cols * grid.rows; i++) {
             const cell = Util.n2Cell(i, grid);
             let value = aFunc();
             grid.set(cell, value);
-            this.redrawList.push(cell);
+            this.redrawList.add(cell);
         }
     }
     fill(value = 0) {
@@ -105,10 +123,10 @@ class Composition {
         for (let i = 0; i < grid.cols * grid.rows; i++) {
             const cell = Util.n2Cell(i, grid);
             grid.set(cell, value);
-            this.redrawList.push(cell);
+            this.redrawList.add(cell);
         }
         // this.bg.map.forEach((val, key) => {
-        //     this.redrawList.push(key);
+        //     this.redrawList.add(key);
         // });
     }
     // static fixkey(aKey) {
@@ -120,35 +138,44 @@ class Composition {
         return this.bg.get(key);
     }
     set_bg(key, val) {
-        this.bg.set(key, val);
-        this.redrawList.push(key);
+        if (Util.cell2Xy(key, this.bg))
+            this.bg.set(key, val);
+        this.redrawList.add(key);
     }
     queue_redraw(key) {
-        this.redrawList.push(key);
+        this.redrawList.add(key);
     }
     refresh2() {
-        console.log("Drawing:", this.redrawList.length, "elements");
-        console.time();
+        // console.log("Drawing:", this.redrawList.size, "elements");
+        // console.timeStamp;
 
         GridArtist.makeArt(Util.$id(this.comptainer_id), this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
         // let node = Util.$id(this.comptainer_id); debugger;
         // node.innerHTML = gridHTML.innerHTML;
         // Util.$id(this.comptainer_id).replaceWith(gridHTML);
 
-        this.redrawList = [];
-        console.timeEnd();
+        this.redrawList = new Set();
+        // console.log(console.timeEnd());
 
     }
+
     refresh() {
-        console.time();
-        console.log("Drawing:", this.redrawList.length, "elements");
+        // console.time();
+        // console.log("Drawing:", this.redrawList.size, "elements");
 
         this.redrawList.forEach(id => {
             // const bgid = "bg_"+id
             let element = Util.$id(id);
-            // debugger;
-            let result = GridArtist.htmlForCell(this.bg, id);
-            element.replaceWith(result);
+            if (element) {
+                // debugger;
+                let result = GridArtist.htmlForCell(this.bg, id);
+                element.replaceWith(result);
+            }
+            else {
+                console.error("null value in refresh", id);
+                debugger;
+            }
+
             // element.outerHTML = result.outerHTML;
             // element.textContent = result.textContent;
             // element.className = result.className;
@@ -157,28 +184,32 @@ class Composition {
         });
         // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { TILEPX: 24, name: this.comptainer + "-grid" })
         // this.update(gridHTML);
-        console.timeEnd();
-        this.redrawList = [];
+        // console.timeEnd();
+        this.redrawList = new Set();
     }
     init() {
         document.documentElement.style.setProperty('--tileSize', this.TILEPX + 'px');
         document.documentElement.style.setProperty('--totalWidth', this.nWide * (this.TILEPX + this.options.SPACING) + 'px');
-        let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
-        this.append(gridHTML);
-
+        // document.documentElement.style.setProperty('--compTop', this.nWide * (this.TILEPX + this.options.SPACING) + 'px');
+        // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
+        // this.append(gridHTML);
+        GridArtist.makeArt(this.comptainer_id, this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
         // let html_fg = document.createElement("div");
+    }
+    size() {
+        return this.nWide * this.nTall;
     }
 }
 
 
 
 class GridArtist {
-    static drawOnFreshCanvas(aGrid, options) {
-        let wrapper = document.createElement("div");
-        wrapper.id = "freshcanvas_" + options.name;
-        GridArtist.makeArt(wrapper, aGrid, options);
-        return wrapper;
-    }
+    // static drawOnFreshCanvas(aGrid, options) {
+    //     let wrapper = document.createElement("div");
+    //     wrapper.id = "freshcanvas_" + options.name;
+    //     GridArtist.makeArt(wrapper, aGrid, options);
+    //     return wrapper;
+    // }
 
     static htmlForCell(aGrid, cellname) {
         let cell = document.createElement("div");
@@ -186,11 +217,18 @@ class GridArtist {
         if (val === undefined) val = -1;
         cell.id = cellname;
         cell.title = String(Loc.new_fromCell(aGrid, cellname).getIndex());
-        cell.className = "tile level" + val;
-        if (val > 10) {
-            const percent = val;
+        // cell.className = "tile level" + val;
+        cell.className = "tile";
+        if (val >= 0) {
+            const h = 0 + (val / 100) * 60;
+            const s = 70;
+            const l = (val < 25) ? 30 + val / 8 : 10 + val * .9;
             // cell.style.color = "red";
-            cell.style.backgroundColor = "hsl(" + val * 3.6 + ", 75%, " + percent + "%)";
+            // cell.style.backgroundColor = "hsl(" + val * 3.6 + ", 60%, " + (30 + val / 3) + "%)";
+
+            cell.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+        } else if (val == 0) {
+
         }
         // debugger;
         // Inner cell
@@ -198,15 +236,20 @@ class GridArtist {
         inner_cell.id = cellname + "_val";
         // inner_cell.value = val;
         inner_cell.innerText = val;
-        if (val === -1) { inner_cell.innerText = `${cellname.split("_")[1]}\n-` };
+        if (val === -1) {
+            inner_cell.innerText = cellname;
+        }
         inner_cell.className = "tileInner";
         // cell.innerHTML = `<div class=tile2line>${val}</div>`;
         cell.appendChild(inner_cell);
         return cell;
     }
+
     static makeArt(wrapper: HTMLElement, aGrid: Grid, options): HTMLElement {
         let index = 0;
-
+        if (typeof wrapper === 'string') {
+            wrapper = Util.$id(wrapper);
+        }
         const marg = options.SPACING;
         wrapper.innerHTML = "";
         wrapper.style.width = `${(options.TILEPX + marg) * aGrid.cols}px`;
@@ -216,22 +259,14 @@ class GridArtist {
         for (let rows = 0; rows < aGrid.rows; rows++) {
             let row_wrapper = document.createElement("div");
             row_wrapper.id = options.name + "_row_" + rows;
-            row_wrapper.style.width = options.TILEPX * aGrid.cols + "px"; //+wrapper.style.width;
+            // row_wrapper.style.width = "100%";//options.TILEPX * aGrid.cols + "px"; //+wrapper.style.width;
             row_wrapper.style.height = options.TILEPX + "px";
+            // row_wrapper.style.display = "inline";
             // debugger;
             wrapper.appendChild(row_wrapper);
             for (let cols = 0; cols < aGrid.cols; cols++) {
                 let cellname = Util.xy2Cell(cols, rows);
                 let cell = GridArtist.htmlForCell(aGrid, cellname);
-                // if (div.innerHTML.length === 0
-                //     || div.innerHTML === "undefined") {
-                //     div.innerHTML = `<div class=tile2line>${options.name}<br>${cellname}</div>`;
-                //     // div.className += " tile2line"
-                // }
-                // MAPS.id2cell.set(index, cellname);
-
-                // MAPS.cell2val.set(cellname, 0);
-                // Utils.update_div_value(div);
                 row_wrapper.append(cell);
 
                 index++;
@@ -344,8 +379,10 @@ class Grid {
 //! ------------------------------------------------------------------------------------------ SECONDARY
 class Loc {
     public x: number;
+    public max_x: number;
     public y: number;
-    public reference_grid: Grid;
+    public max_y: number;
+    // public reference_grid: Grid;
 
     constructor(grid = new Grid(5, 5), x = 0, y = 0) {
         this.x = x;
@@ -354,7 +391,9 @@ class Loc {
         this.y = y;
         if (this.y > grid.rows) this.y -= grid.rows;
         if (this.y < 0) this.y += grid.rows;
-        this.reference_grid = grid;
+        this.max_x = grid.cols;
+        this.max_y = grid.rows;
+        // this.reference_grid = grid;
     }
 
     static new_fromCell(grid = new Grid(5, 5), cellname) {
@@ -374,16 +413,16 @@ class Loc {
         return Util.xy2Cell(this.x, this.y);
     }
     getIndex() {
-        return this.x + this.y * this.reference_grid.cols;
+        return this.x + this.y * this.max_x;
     }
     shiftIndex(n = 1) {
         let newIndex = this.getIndex() + n;
-        if (newIndex < 0 || newIndex >= this.reference_grid.size) return;
+        if (newIndex < 0 || newIndex >= this.max_x * this.max_y) return;
         // return this;
-        return Loc.new_fromIndex(this.reference_grid, newIndex);
+        return Loc.new_fromIndex(new Grid(this.max_x, this.max_y), newIndex);
     }
-    shiftY(n = 1) { return new Loc(this.reference_grid, this.x, this.y + n) };
-    shiftX(n = 1) { return new Loc(this.reference_grid, this.x + n, this.y) };
+    shiftY(n = 1) { return new Loc(new Grid(this.max_x, this.max_y), this.x, this.y + n) };
+    shiftX(n = 1) { return new Loc(new Grid(this.max_x, this.max_y), this.x + n, this.y) };
     get8Neighbors() {
         return [this.shiftY(-1).shiftX(-1), this.shiftY(-1), this.shiftY(-1).shiftX(1),
         this.shiftX(-1), this.shiftX(1),
@@ -392,97 +431,22 @@ class Loc {
     }
 }
 
-class Link<T1, T2> {
-    A: T1;
-    B: T2;
-    static allLinks = new Map();
-    constructor(A: T1, B: T2) {
-        this.A = A;
-        this.B = B;
-        Link.allLinks.set(A, this);
-    }
-    static getBfromA(obj) { return Link.allLinks.get(obj) };
-
-    static getAfromB(obj) {
-        for (let [key, value] of Link.allLinks.entries()) {
-            if (value === obj) return key;
-        }
-    }
-
-    getPartner(iA) {
-        if (typeof (iA) === typeof (this.A)) return this.B;
-        else return this.A;
-    }
-}
-
-class Scene {
-    html;
-    list_htmlElements: Array<HTMLElement>;
-    list_gridElements: Array<Grid>;
-    list_names: Array<Link<HTMLElement, Grid>>;
-
-    constructor(name) {
-        this.list_htmlElements = [];
-        this.list_gridElements = [];
-        this.list_names = [];
-        let div = document.createElement('div');
-        div.id = "scene_" + name;
-        this.html = div;
-    }
-    print(parent_id) {
-        const parent = document.getElementById(parent_id);
-        parent.innerHTML = this.html.innerHTML;
-        this.overlay(parent_id);
-    }
-    addDiv(name) {
-        // let container: HTMLElement = document.getElementById(this.containerName);
-        let div = document.createElement('div');
-        div.id = name;
-        div.className = 'tile level5'
-        // div.style.position = 'absolute';
-        div.title = name;
-
-        if (this.list_names.indexOf(name) === -1) this.list_names.push(name)
-        this.list_htmlElements[name] = div;
-        // this.list_connections.push(new Link(div, undefined));
-        this.html.appendChild(div);
-    }
-    addGrid(aGrid, name) {
-        this.list_gridElements[name] = aGrid;
-        if (this.list_names.indexOf(name) === -1) this.list_names.push(name)
-
-        console.log("connection complete", this, this.list_htmlElements[name]);
-        this.drawGrid(name);
-    }
-    drawGrid(aName) {
-        let aGrid = this.list_gridElements[aName];
-        let element = this.list_htmlElements[aName];
-        let art = GridArtist.makeArt(this.html, aGrid, { TILEPX: 24, name: "G1" });
-        // element.appendChild(art);
-
-    }
-    overlay(parent_id) {
-        let refgrid = document.getElementById("layer_bg");
-        const rect = refgrid.getBoundingClientRect();
-        // console.log("rect", rect);
-        this.html = document.getElementById(parent_id);
-        this.html.style.position = "absolute";
-        // this.html.style.display = "none";
-        this.html.style.left = rect.left;
-        this.html.style.top = rect.top;
-        // this.html.style.opacity = 0.5;
-    }
-}
 
 // - - - - - - - - - - - - - - - - - - - - - - - -
 
 class Util {
+    static incrementMap(map: Map<string, number>, key: string) {
+        map.set(key, map.get(key) + 1);
+    }
+    static decrementMap(map: Map<string, number>, key: string) {
+        map.set(key, map.get(key) - 1);
+    }
     static MAPS;
     static GLOB = {
         HEIGHT: 30, //Height / Y
         WIDTH: 20, //Width  / X
         COUNT: 30 * 20,
-        REFGRID: new Grid(16, 8),
+        REFGRID: new Grid(8, 8),
         TILEPX: 24,
         container_div: "#layer_bg",
         LOWER: "abcdefghijklmnopqrstuvqxyz",
@@ -504,30 +468,6 @@ class Util {
     static $id(arg) {
         return document.getElementById(arg);
     }
-    static update_div_value(div: Element, val = "default") {
-        const cellname = div.id;
-        // if (val === "default") {
-        //     val = Utils.MAPS.cell2val.get(cellname);
-        // } else {
-        //     Utils.MAPS.cell2val.set(cellname, val);
-        // }
-        div.innerHTML = String(val);
-        if (div.innerHTML.length === 0
-            || div.innerHTML === "undefined") {
-            div.innerHTML = div.id;
-        }
-        // if (div.innerHTML.length === 3) {
-        let regresult = cellname.match(/([A-Z]+)(\d+)/);
-        let letter = regresult[1];
-        let number = Number(regresult[2]);
-
-        div.innerHTML = letter + `<sub style="font-size: 67%">${number}</sub>`;
-
-        // }
-        div.className = "tile level" + val;
-        // if (Number(val) >= 0 && Number(val) <= 8) div.className = "tile level" + val;
-        // animateandqueueremoval(div);
-    }
     static num2Abc = function (num) {
         // const alphabet = "abcdefghijklmnopqrstuvqxyz";
         const len = Util.GLOB.UPPER.length;
@@ -547,12 +487,6 @@ class Util {
         console.log("error in abc2Num");
         return -1;
     }
-    static indextoXY() {
-
-    }
-    static cell2XY = function (cellname) {
-
-    }
     static xy2Cell = function (x, y) {
         return Util.num2Abc(x).toUpperCase() + y;
     }
@@ -563,6 +497,20 @@ class Util {
     static n2Cell = function (n, aGrid = Util.GLOB.REFGRID) {
         let temp = Util.n2Xy(n, aGrid);
         return Util.xy2Cell(temp.X, temp.Y);
+    }
+
+    static cell2Xy = function (cellname, aGrid = Util.GLOB.REFGRID) {
+        let regresult = cellname.match(/([A-Z]+)(\d+)/);
+        // if (cellname.length > 3) debugger;
+        let x = Util.abc2Num(regresult[1])
+        let y = Number(regresult[2]);
+        return [x, y]
+    }
+    static cell2n = function (cellname, aGrid = Util.GLOB.REFGRID) {
+        // if (cellname.length > 3) debugger;
+        let [x, y] = Util.cell2Xy(cellname, aGrid);
+        return x + y * aGrid.cols;
+
     }
     static toFixedLength = function (input, length, padding?) {
         padding = padding || "0";
@@ -644,5 +592,11 @@ class Util {
             cycle++;
         }, hz);
         let intervalid = setInterval(func, hz);
+    }
+    static timesomething(func) {
+        const t0 = performance.now();
+        func();
+        const t1 = performance.now();
+        console.log(`Call to ${func} took ${t1 - t0} milliseconds.`);
     }
 }

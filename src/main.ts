@@ -6,15 +6,15 @@
 5. Assembling into final complexity
 */
 
-let h = 50;
-let w = 50;
+let h = 8;
+let w = 8;
 const GLOB = { // Universal constants
     HEIGHT: h, //Height / Y
     WIDTH: w, //Width  / X
     COUNT: h * w,
     REFGRID: new Grid(w, h),
     TILEPX: 16,
-    SPACING: 1,
+    SPACING: 0,
     container_div: "#layer_bg",
     LOWER: "abcdefghijklmnopqrstuvqxyz",
     UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -127,52 +127,16 @@ class Nav {
     }
 }
 
-
-function WriteNumber() {
-    // let startcell = 0;
-    // let results = Utils.ascii2CellList(new Loc(new Grid(3, 3,), 0, 0), ["_1"]);
-    // results.forEach(element => {
-    //     Utils.update_div_value(document.querySelector("#" + element), "1");
-    // });
-    console.log("writenumber")
-    let pattern_1 = [
-        "11.",
-        ".1.",
-        ".1.",
-        ".1.",
-        "111"
-    ];
-    let mainstage = new Scene("layer_1");
-    let grod = Grid.fromAscii(pattern_1);
-    mainstage.addDiv("grod");
-    mainstage.addGrid(grod, "grod");
-    let maingrid = mainstage.list_gridElements[0];
-
-    // GridArtist
-    mainstage.print("layer_1");
-
-}
-
-function miniRando() {
-    const randomID = Util.d(GLOB.COUNT) - 1;
-    const randomCell = "bg_" + Util.n2Cell(randomID);
-    let randomdiv = document.getElementById(randomCell);
-    // Utils.update_div_value(randomdiv, String(Util.d(7)));
-    // const oldval = aComp.get_bg(randomdiv.id);
-    // aComp.set_bg(randomdiv.id, oldval + 1);
-}
-
-
-function TurnOnButtons(aComp: Composition) {
+function TurnOnButtons() {
     document.getElementById("b0").addEventListener("click", stages.reset);
-    document.getElementById("b1").addEventListener("click", aComp);
+    // document.getElementById("b1").addEventListener("click", aComp);
     document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
-    document.getElementById("b3").addEventListener("click", WriteNumber);
-    (document.getElementById("b4") as HTMLButtonElement).value = "StampNumber";
-    document.getElementById("b4").addEventListener("click", stampNumber);
+    // document.getElementById("b3").addEventListener("click", WriteNumber);
+    (document.getElementById("b4") as HTMLButtonElement).value = "Play";
+    document.getElementById("b4").addEventListener("click", musicalTesting);
 
-};
-import { Scene, Util } from "./Classes.js";
+}
+import { Composition, Grid, Util } from "./Classes.js";
 function stampNumber() {
     let pattern_1 = [
         "11.",
@@ -188,54 +152,12 @@ function stampNumber() {
         "2..",
         "222"
     ];
-    let mainstage = new Scene("layer_2");
+    let mainstage = new Composition("layer_2");
     let grod = Grid.fromAscii(pattern_1);
     let stamp = Grid.fromAscii(pattern_2);
     grod.useStamp(stamp);
-    mainstage.addDiv("grod");
-    mainstage.addGrid(grod, "grod");
-    let maingrid = mainstage.list_gridElements[0];
-
-    // GridArtist
-    mainstage.print("layer_2");
-
-    // let mainstage2 = new SScene("layer_2");
-    // let grod2 = Grid.fromAscii(pattern_2);
-    // mainstage2.addDiv("grod2");
-    // mainstage2.addGrid(grod2, "grod2");
-    // mainstage2.print("layer_2");
-    // console.log(grod2);
 }
 
-// Automata();
-// export { Utils };
-import { Grid, Loc, Composition } from "./Classes.js";
-function CompositionTesting() {
-    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
-    comp.init();
-    // comp.set_bg("B1", 5);
-    // debugger;
-    // comp.fill(0);
-    comp.fillWithFunc(function () {
-        return Util.d(4) === 1;
-    })
-    comp.refresh();
-    TurnOnButtons(comp);
-    // Util.setIntervalX(() => comp.miniRando(10), 0, 100);
-    // comp.miniRando(1000);
-    comp.gameOfLife();
-    // n2CellTesting(comp);
-}
-CompositionTesting();
-// function chainReaction(aComp:Composition) {
-//     let MAX = aComp.nWide * aComp.nTall;
-//     for (let i = 0; i < MAX; i++) {
-//         const current = "bg_" + Util.n2Cell(i, aComp.bg);
-//         console.log("testing", i, randomCell);
-
-//         aCompo
-//     }
-// }
 function n2CellTesting(aComp: Composition) {
     let MAX = aComp.nWide * aComp.nTall;
     for (let i = 0; i < MAX; i++) {
@@ -245,9 +167,249 @@ function n2CellTesting(aComp: Composition) {
 
     }
 }
-// BuildGrid();
-// TurnOnButtons();
-// let eng = new Being();
-// eng.start();
-// SPELLS.CrazyTiles(1000);
-// WriteNumber();
+
+function CompositionTesting() {
+    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
+    comp.init();
+    // comp.set_bg("B1", 5);
+    // debugger;
+    // comp.fill(0);
+    comp.fillWithFunc(function () {
+        return Util.d(10) == 1 ? 1 : 0;
+    });
+    comp.refresh();
+    TurnOnButtons();
+    // Util.setIntervalX(() => comp.miniRando(10), 0, 100);
+    comp.miniRando(1000);
+    // comp.gameOfLife();
+    // n2CellTesting(comp);
+}// CompositionTesting();
+
+function musicalTesting() {
+    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
+    comp.init();
+    // comp.set_bg("B1", 5);
+    // debugger;
+    comp.fill(-1);
+    // comp.fillWithFunc(function () {
+    //     return Util.d(10) == 1;
+    // })
+    comp.refresh();
+    TurnOnButtons();
+
+    let musicer = visualizer(comp);
+    musicer.audio();
+    // var audioCtx = new (window.AudioContext)();
+    // var analyser = audioCtx.createAnalyser();
+    // // source = audioCtx.createMediaStreamSource(stream);
+    // // source.connect(analyser);
+    // // analyser.connect(distortion);
+    // // distortion.connect(audioCtx.destination);
+
+    // analyser.fftSize = 2048;
+    // var bufferLength = analyser.frequencyBinCount;
+    // var dataArray = new Uint8Array(bufferLength);
+};
+
+TurnOnButtons();
+window.onload = (event) => {
+    console.log('page is fully loaded');
+    Util.$id("b4").click();
+}
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+let visualizer = function (aComp: Composition) {
+    const WIDTH = 1500;
+    const HEIGHT = 1500;
+    const FFT_SIZE = 2 ** 10;
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    let analyzer: AnalyserNode;
+    let bufferLength;
+
+    function hslToRgb(h, s, l) {
+        let r;
+        let g;
+        let b;
+
+        if (s == -1) {
+            r = g = b = l; // achromatic
+        } else {
+            const hue2rgb = function hue2rgb(p, q, t) {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            };
+
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1 / 3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1 / 3);
+        }
+
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+    function audio() {
+
+        const audioCtx = new AudioContext();
+        const audio = new Audio("passwordshow.wav");
+        const source = audioCtx.createMediaElementSource(audio);
+
+        source.connect(audioCtx.destination);
+        analyzer = audioCtx.createAnalyser();
+        audio.playbackRate = 1 / 2;
+        analyzer.smoothingTimeConstant = .6;
+        source.connect(analyzer);
+        analyzer.fftSize = FFT_SIZE;
+        // analyzer.maxDecibels = -45;
+        analyzer.minDecibels = -75;
+        audio.play();
+
+        bufferLength = analyzer.frequencyBinCount;
+        console.log("bufferlength", bufferLength);
+        bufferLength = analyzer.frequencyBinCount;
+        const timeData = new Uint8Array(bufferLength);
+        const frequencyData = new Uint8Array(bufferLength);
+        requestAnimationFrame(() => {
+            // setTimeout(function () {
+            analyzer.getByteTimeDomainData(timeData);
+            analyzer.getByteFrequencyData(frequencyData);
+            drawTimeData(timeData);
+            drawFrequency(frequencyData);
+            drawCompo(frequencyData);
+            // }, 500)
+        })
+    }
+
+    async function getAudio() {
+        const stream = await navigator.mediaDevices
+            .getUserMedia({ audio: true })
+        const audioCtx = new AudioContext();
+        const source = audioCtx.createMediaStreamSource(stream);
+
+        analyzer = audioCtx.createAnalyser();
+        source.connect(analyzer);
+
+        // How much data should we collect?
+        analyzer.fftSize = FFT_SIZE;
+
+        // pull the data off the audio
+        // how many pieces of data are there?
+        const timeData = new Uint8Array(bufferLength);
+        const frequencyData = new Uint8Array(bufferLength);
+        requestAnimationFrame(() => {
+            // setTimeout(function () {
+            // analyzer.getByteTimeDomainData(timeData);
+            // analyzer.getByteFrequencyData(frequencyData);
+            drawTimeData(timeData);
+            drawFrequency(frequencyData);
+            drawCompo(frequencyData);
+            // }, 500)
+        })
+    }
+
+    function drawTimeData(timeData) {
+        // inject the time data into the time data array
+        analyzer.getByteTimeDomainData(timeData);
+        // now that we have the data, let's turn it into something visual
+        // 1. clear the canvas
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        // 2. set up some canvas drawing
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#ffc600';
+        ctx.beginPath();
+        const sliceWidth = WIDTH / bufferLength;
+        let x = 0;
+
+        timeData.forEach((data, i) => {
+            // multiplier in drawing the data
+            const v = data / 128;
+            // height of visualized data
+            const y = (v * HEIGHT) / 2;
+            // draw our lines
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+            x += sliceWidth;
+        });
+
+        ctx.stroke();
+
+        // call itself as soon as possible!
+        requestAnimationFrame(() => drawTimeData(timeData));
+    }
+    function drawCompo(frequencyData) {
+        analyzer.getByteFrequencyData(frequencyData);
+
+        let count = 0;
+        let dataEnd = 0;
+        let iComp = 0;
+        for (let index = 0; iComp < aComp.size(); index++) {
+            const amount = frequencyData[index];
+            let key = Util.n2Cell(iComp++);
+
+            let val = Math.floor(amount / 255 * 100);
+            aComp.set_bg(key, val);
+        }
+        // frequencyData.forEach(amount => {
+        //     let key = Util.n2Cell(Math.floor(count));
+
+        //     if (aComp.bg.map.has(key)) {
+        //         let val = Math.floor(amount / 255 * 100);
+
+        //         // if (val < 10) val *= 10;
+        //         // debugger;
+        //         // if (val > 20)
+        //         aComp.set_bg(key, val);
+
+        //         // if (val > 80)
+        //         //     console.log(key, count);
+        //         count++;
+        //     }
+        //     // aComp.decrement(key);
+
+        // })
+
+        requestAnimationFrame(() => {
+            aComp.refresh();
+            //     // for (const key in aComp.bg.map.keys()) {
+            //     //     aComp.decrement(key);
+            //     // }
+            drawCompo(frequencyData);
+        });
+    }
+    function drawFrequency(frequencyData) {
+        // get the frequency data into our frequencyData array
+        analyzer.getByteFrequencyData(frequencyData);
+
+        // figure out the bar width
+        const barWidth = (WIDTH / bufferLength) * 5.5;
+        let x = 0;
+        frequencyData.forEach(amount => {
+            // frequency data comes in from 0 - 255
+            const percent = amount / 255; // 0 - 100%
+            const [h, s, l] = [percent, 0.8, 0.5];
+            const barHeight = (HEIGHT * percent) / 2;
+            // convert the color to HSL
+            const [r, g, b] = hslToRgb(h, s, l);
+            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+            x += barWidth;
+        });
+
+        requestAnimationFrame(() => {
+            drawFrequency(frequencyData)
+        });
+    }
+    return { getAudio, audio };
+}
+// let test = visualizer();
+// test.getAudio();
+// musicalTesting();

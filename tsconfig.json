@@ -8,9 +8,9 @@
         "outDir": "build",
         "removeComments": true,
         "listEmittedFiles": true,
-        // "sourceMap": true,
-        "declaration": true,
-        "declarationMap": true
+        "sourceMap": true
+        // "declaration": true,
+        // "declarationMap": true
         // "isolatedModules": true,
         // "declarationDir": "declare_dir"
         // "emitDeclarationOnly": true
