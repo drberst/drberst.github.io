@@ -16,8 +16,7 @@
         // "emitDeclarationOnly": true
     },
     // "include": ["main.ts",""],
-
-    "include": ["./src/main.ts"]
+    "include": ["./src/main.ts", "./src/new main lol.ts"]
     // "references": [{ "path": "../src" }],
     // "exclude": ["node_modules", "**/node_modules/*", "build/*", "declare_dir/*", "old_src/*"]
 }

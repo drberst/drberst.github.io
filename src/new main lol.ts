@@ -1,14 +1,14 @@
 /*
-1. Global vars
+1. Glob2al vars
 2. collections of data
 3. collections of functions
 4. Using pieces 1-3 for stage 2 complexity
 5. Assembling into final complexity
 */
 
-let h = 8;
-let w = 12;
-const GLOB = { // Universal constants
+let h = 6;
+let w = 18;
+const GLOB2 = { // Universal constants
     HEIGHT: h, //Height / Y
     WIDTH: w, //Width  / X
     COUNT: h * w,
@@ -32,8 +32,8 @@ const MAPS = { // Reality arisen from constants
 class Nav {
     static directions(id: number) {
         return {
-            above: id - GLOB.WIDTH,
-            below: id + GLOB.WIDTH,
+            above: id - GLOB2.WIDTH,
+            below: id + GLOB2.WIDTH,
             left: id - 1,
             right: id + 1
         }
@@ -41,8 +41,8 @@ class Nav {
     static zDivrections = function (div: HTMLDivElement) {
         let id = Number(div.id.substring(1));
         return {
-            above: id - GLOB.WIDTH,
-            below: id + GLOB.WIDTH,
+            above: id - GLOB2.WIDTH,
+            below: id + GLOB2.WIDTH,
             left: id - 1,
             right: id + 1
         }
@@ -91,7 +91,7 @@ function n2CellTesting(aComp: Composition) {
 }
 
 function CompositionTesting() {
-    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
+    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB2.TILEPX, SPACING: GLOB2.SPACING, nWide: GLOB2.WIDTH, nTall: GLOB2.HEIGHT });
     comp.init();
     // comp.set_bg("B1", 5);
     // debugger;
@@ -109,19 +109,20 @@ function CompositionTesting() {
 
 
 import Audio from "./Audio.js";
+import SingleLayerComp from "./SingleLayerComp.js"
 function musicalTesting() {
-    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB.TILEPX, SPACING: GLOB.SPACING, nWide: GLOB.WIDTH, nTall: GLOB.HEIGHT });
+    let comp = new SingleLayerComp({ comptainer: "layer_bg", TILEPX: GLOB2.TILEPX, SPACING: GLOB2.SPACING, nWide: 5, nTall: 5 });
     comp.init();
     // comp.set_bg("B1", 5);
     // debugger;
-    comp.fill(-1);
+    // comp.fill(-1);
     // comp.fillWithFunc(function () {
     //     return Util.d(10) == 1;
     // })
-    comp.refresh();
+    // comp.refresh();
     // TurnOnButtons();
-
-    Audio.mp3Visualizer(comp);
+    console.log("hello", "rows", comp.nTall, "cols", comp.nWide);
+    // Audio.mp3Visualizer(comp);
     // Audio.visualizer(comp);
     // musicer.audio();
     // var audioCtx = new (window.AudioContext)();

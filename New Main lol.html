@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>CSS Grid Alignment Playground</title>
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/new main lol.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
     <!-- <link href="/favicon.ico" type="image/x-icon" rel="icon" /> -->
     <link rel="shortcut icon" href="#">
@@ -21,12 +21,22 @@
     <input id="b2" type="button" value="RandomHighlight" />
     <input id="b3" type="button" value="WriteNumber" /> -->
     <input id="b4" type="button" value="Automata" />
-    <div id="writable_area">
-        <!-- <h3>v016</h3> -->
-        <div id="layers">
-            <div id="layer_bg" class="container"></div>
-            <canvas></canvas>
+    <!-- <div id="grid container"> -->
+    <div class="wrapper one">
+        <!-- <div class="grid-item zero">Zero</div> -->
+        <div class="grid-item one">
+            <div id="layer_bg" class="container">
+                <span class="tile">A0</span>
+                <span class="tile">A1</span>
+                <span class="tile">A2</span>
+                <span class="tile">A3</span>
+            </div>
         </div>
+        <div class="grid-item two">Two<canvas></canvas></div>
+        <div class="grid-item three">Three</div>
+        <div class="grid-item four"><textarea>Four</textarea></div>
+        <!-- <div class="grid-item five">Five</div>
+        <div class="grid-item six">Six</div> -->
     </div>
     <!-- structure for composition -->
     <!-- <div id="comptainer">
@@ -50,20 +60,20 @@
 </body>
 
 
-<script type="module" src="build/Classes.js"></script>
-<script type="module" src="build/Composition.js"></script>
+<!-- <script type="module" src="build/Classes.js"></script> -->
+<script type="module" src="build/SingleLayerComp.js"></script>
 <script type="module" src="build/Grid.js"></script>
 <script type="module" src="build/Util.js"></script>
-<!-- <script type="module" src="build/Classes.js"></script> -->
-<script type="module" src="build/main.js">
+<script type="module" src="build/Classes.js"></script>
+<script type="module" src="build/new main lol.js">
 
 
 </script>
 <script type="module">
     import Util from "./build/Util.js";
-    import Main from "./build/main.js";
+    import Main2 from "./build/new main lol.js";
     window.onload = (event) => {
-        Main.TurnOnButtons();
+        Main2.TurnOnButtons();
         console.log('page is fully loaded');
         Util.$id("b4").click();
     }

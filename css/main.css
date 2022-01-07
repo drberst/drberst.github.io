@@ -1,8 +1,8 @@
 :root {
-    --tileSize: 18px;
-    --totalWidth: 200px;
-    --smallTileSize: 10px;
-    --level0: hsl(0, 0%, 19%);
+    --tileSize: 40px;
+    --totalWidth: 1500px;
+    --smallTileSize: 20px;
+    --level0: hsl(0, 0%, 39%);
     --level1: hsl(40, 50%, 50%);
     --level2: hsl(80, 50%, 50%);
     --level3: hsl(120, 50%, 50%);
@@ -40,11 +40,20 @@ body {
     position: relative;
     /* width: var(--totalWidth); */
 }
-#layers > * {
-    position: absolute;
-    top: -2em;
-    left: var(--totalWidth);
-    margin-left: 100px;
+canvas {
+    /* top: calc(var(--totalWidth)); */
+    width: var(--totalWidth);
+    z-index: 1;
+    border: 1px solid red;
+    position: relative;
+    left: 20px;
+    /* display: inline; */
+}
+#layers {
+    display: inline-flex;
+    /* top: -2em; */
+    /* left: var(--totalWidth); */
+    /* margin-left: 100px; */
 }
 #outer_container {
     /* width: var(--totalWidth); */
@@ -52,13 +61,7 @@ body {
     background-color: rgb(59, 59, 59);
     /* position: relative; */
 }
-canvas {
-    top: calc(var(--totalWidth) * -10);
-    width: var(--totalWidth);
-    z-index: 1;
-    /* position: relative; */
-    display: inline-block;
-}
+
 .container {
     /* width: 200px; */
     /* height: 200px; */
@@ -69,18 +72,17 @@ canvas {
     /* display: none; */
     /* left: 50%; */
     /* top: 0px; */
-    /* background-color: rgb(80, 80, 80); */
+    background-color: rgb(80, 80, 80);
 }
-/* .row {
+.row {
     height: var(--tileSize);
-} */
+}
 .tile {
     /***TEXT*/
     font-family: "VG323", monospace;
     color: black;
     user-select: none;
-
-    font-size: 67%;
+    /* font-size: 0.6rem; */
     line-height: var(--tileSize);
     height: var(--tileSize);
     width: var(--tileSize);
@@ -108,6 +110,10 @@ canvas {
 .tileInner {
     position: relative;
     line-height: 1em;
+    font-size: 67%;
+    /* background-color: white; */
+    display: block;
+    width: 50%;
     /* letter-spacing: 1em; */
     top: 50%;
     left: 50%;
