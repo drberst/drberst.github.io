@@ -6,14 +6,14 @@ export default class Grid {
     rows;
     cols;
     map: Map<string, number>;
-    size;
+    // size;
     name;
 
     constructor(x = 8, y = 8) {
         this.map = new Map();
         this.cols = x;
         this.rows = y;
-        this.size = x * y;
+        // this.size = x * y;
         this.name = "G" + Grid.idcount++;
         console.log(this)
         // this.init();
@@ -43,6 +43,9 @@ export default class Grid {
             this.map.set(key.split("_")[1], val);
         }
         else this.map.set(key, val);
+    }
+    size() {
+        return this.map.size;
     }
     atLoc(Location: Loc) {
         return this.get(Location.getCellname());

@@ -34,31 +34,40 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
+    grid-template-areas:
+        "a a b"
+        "a a c"
+        "d d d";
     gap: 10px;
     /* grid-auto-rows: minmax(150px, 1fr); */
 }
 
 .one {
-    grid-column: 1 / 3;
-    grid-row: 1 /3;
+    grid-area: a;
 }
 .two {
-    grid-column: 3;
-    grid-row: 1;
+    grid-area: b;
+    position: relative;
+}
+.two > canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 1px solid cyan;
 }
 .three {
-    grid-column: 3;
-    grid-row: 2;
+    grid-area: c;
 }
 .four {
-    grid-column: 1/4;
-    grid-row: 3;
+    grid-area: d;
 }
 .four textarea {
     width: 100%;
     height: 100%;
-    box-sizing: border-box;
-    background-color: darkgrey;
+    /* box-sizing: border-box; */
+    /* background-color: darkgrey; */
 }
 /* .five {
     grid-column: 2;
@@ -82,8 +91,8 @@ body {
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    grid-template-rows: repeat(10, 1fr);
+    /* grid-template-columns: repeat(10, 1fr); */
+    /* grid-template-rows: repeat(10, 1fr); */
     gap: 5px;
     /* background-color: rgb(87, 2, 2); */
 }
@@ -100,7 +109,10 @@ body {
     font-family: "VG323", monospace;
     color: rgb(231, 231, 231);
     user-select: none;
-    /* overflow: hidden; */
+    overflow: hidden;
+    /* display: inline-block; */
+    text-align: center;
+    word-break: break-all;
     /***BACKGROUND*/
     /* vertical-align: middle; */
     /* border: 0.5px solid white; */
@@ -116,11 +128,15 @@ body {
 }
 
 .tileInner {
+    font-size: small;
     position: relative;
-    display: inline-block;
-    background-color: rgb(165, 165, 165);
+    /* animation: glow 1s ease-in-out infinite alternate; */
+    text-shadow: 1px 1px 1px #000, 1px 1px 10px #ccc;
+
+    /* display: inline-block; */
+    /* background-color: rgb(165, 165, 165); */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 5%;
+    /* padding: 0.5em; */
 }

@@ -49,15 +49,6 @@ class Nav {
     }
 }
 
-function TurnOnButtons() {
-    // document.getElementById("b0").addEventListener("click", stages.reset);
-    // document.getElementById("b1").addEventListener("click", aComp);
-    // document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
-    // document.getElementById("b3").addEventListener("click", WriteNumber);
-    (document.getElementById("b4") as HTMLButtonElement).value = "Play";
-    document.getElementById("b4").addEventListener("click", musicalTesting);
-
-}
 import { Composition, Grid, Util } from "./Classes.js";
 function stampNumber() {
     let pattern_1 = [
@@ -111,18 +102,18 @@ function CompositionTesting() {
 import Audio from "./Audio.js";
 import SingleLayerComp from "./SingleLayerComp.js"
 function musicalTesting() {
-    let comp = new SingleLayerComp({ comptainer: "layer_bg", TILEPX: GLOB2.TILEPX, SPACING: GLOB2.SPACING, nWide: 5, nTall: 5 });
+    let comp = new SingleLayerComp({ comptainer: "layer_bg", TILEPX: GLOB2.TILEPX, SPACING: GLOB2.SPACING, nWide: 12, nTall: 12 });
+    // comp.fill(-1);
     comp.init();
     // comp.set_bg("B1", 5);
     // debugger;
-    // comp.fill(-1);
     // comp.fillWithFunc(function () {
     //     return Util.d(10) == 1;
     // })
     // comp.refresh();
     // TurnOnButtons();
     console.log("hello", "rows", comp.nTall, "cols", comp.nWide);
-    // Audio.mp3Visualizer(comp);
+    Audio.mp3Visualizer(comp);
     // Audio.visualizer(comp);
     // musicer.audio();
     // var audioCtx = new (window.AudioContext)();
@@ -136,6 +127,16 @@ function musicalTesting() {
     // var bufferLength = analyser.frequencyBinCount;
     // var dataArray = new Uint8Array(bufferLength);
 };
+
+function TurnOnButtons() {
+    // document.getElementById("b0").addEventListener("click", stages.reset);
+    // document.getElementById("b1").addEventListener("click", aComp);
+    // document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
+    // document.getElementById("b3").addEventListener("click", WriteNumber);
+    (document.getElementById("b4") as HTMLButtonElement).value = "Play";
+    document.getElementById("b4").addEventListener("click", musicalTesting);
+
+}
 export default { TurnOnButtons }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

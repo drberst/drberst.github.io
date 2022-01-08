@@ -51,15 +51,22 @@ export default class SingleLayerComp {
     // }
 
     get(key: string) {
+        const value = this.grid.get(key);
+        if (value == null) console.log(key, "wasn't found in", this.grid);
         return this.grid.get(key);
     }
     set(key, val) {
-        const index = Util.cell2n(key, this.grid);
-        if (index > this.size()) {
-            debugger;
+        const [x, y] = Util.cell2Xy(key, this.grid);
+        const prev_val = this.grid.get(key);
+
+        if (x > this.nWide || y > this.nTall || prev_val == undefined) {
+            console.error("can't set", val, "to key", key, "because it out of range of", x, y)
+            // debugger;
+        } else {
+
+            this.grid.set(key, val);
+            this.redrawList.add(key);
         }
-        this.grid.set(key, val);
-        this.redrawList.add(key);
     }
     queue_redraw(key) {
         this.redrawList.add(key);
@@ -106,13 +113,14 @@ export default class SingleLayerComp {
         // console.timeEnd();
         this.redrawList = new Set();
     }
-    init() {
+    init(n?) {
         // document.documentElement.style.setProperty('--tileSize', this.TILEPX + 'px');
         // document.documentElement.style.setProperty('--totalWidth', this.nWide * (this.TILEPX + this.options.SPACING) + 'px');
         // document.documentElement.style.setProperty('--compTop', this.nWide * (this.TILEPX + this.options.SPACING) + 'px');
         // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
         // this.append(gridHTML);
-        GridArtist.fillWrapperWithGrid(this.comptainer_id, this.grid, { ...this.options, name: "bg" })
+        this.fill(n = 5);
+        GridArtist.fillWrapperWithGrid(this.comptainer_id, this.grid)
         // let html_fg = document.createElement("div");
     }
     size() {
@@ -128,7 +136,7 @@ class GridArtist {
         let val = aGrid.get(cellname);
         if (val === undefined) val = -1;
         cell.id = cellname;
-        cell.title = String(Loc.new_fromCell(aGrid, cellname).getIndex() + 1);
+        cell.title = String(Loc.new_fromCell(aGrid, cellname).getIndex());
         // cell.className = "tile level" + val;
         cell.className = "tile";
         if (val >= 0) {
@@ -161,42 +169,26 @@ class GridArtist {
         return cell;
     }
 
-    static fillWrapperWithGrid(wrapper: HTMLElement, aGrid: Grid, options): HTMLElement {
+    static fillWrapperWithGrid(wrapper: HTMLElement, aGrid: Grid, options?): HTMLElement {
         let index = 0;
         if (typeof wrapper === 'string') {
             wrapper = Util.$id(wrapper);
         }
-        // const marg = options.SPACING;
         wrapper.innerHTML = "";
         wrapper.style.gridTemplateColumns = `repeat(${aGrid.cols},1fr)`;
         wrapper.style.gridTemplateRows = `repeat(${aGrid.rows},1fr)`;
 
-        // : repeat(10, 1fr);
-        // grid - template - rows: repeat(10, 1fr);
-        // wrapper.style.width = `${(options.TILEPX + marg) * aGrid.cols}px`;
-        // wrapper.style.height = `${(options.TILEPX + marg) * aGrid.rows}px`;
         console.log("Filling wrapper with grid=", aGrid)
 
-        // for (let rows = 0; rows < aGrid.rows; rows++) {
-        // let row_wrapper = document.createElement("span");
-        // row_wrapper.id = options.name + "_row_" + rows;
-        // row_wrapper.style.width = options.TILEPX * aGrid.cols + "px"; //+wrapper.style.width;
-        // row_wrapper.style.height = options.TILEPX + "px";
-        // row_wrapper.style.height = options.TILEPX + "px";
-        // row_wrapper.style.display = "inline";
-        // debugger;
-        // wrapper.appendChild(row_wrapper);
-        for (let i = 0; i < aGrid.size; i++) {
-            setTimeout(() => {
-                let cellname = Util.n2Cell(i, aGrid);
-                let cell = GridArtist.htmlForCell(aGrid, cellname);
-                console.log(i, cellname, cell)
-                wrapper.append(cell);
-                index++;
-            }, i * 50)
+        for (let i = 0; i < aGrid.size(); i++) {
+            // setTimeout(() => {
+            let cellname = Util.n2Cell(i, aGrid);
+            let cell = GridArtist.htmlForCell(aGrid, cellname);
+            console.log(i, cellname, cell)
+            wrapper.append(cell);
+            index++;
+            // }, i * 50)
         }
-        // }
-        // console.log(this);
         return wrapper;
     }
 };

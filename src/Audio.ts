@@ -1,9 +1,10 @@
 import { Util } from "./Classes.js";
+import SingleLayerComp from "./SingleLayerComp.js";
 
 export default (function () {
-    const WIDTH = 640;
-    const HEIGHT = 640;
-    const FFT_SIZE = 2 ** 13;
+    let WIDTH = 300;
+    let HEIGHT = 243;
+    const FFT_SIZE = 2 ** 11;
     const SPEED = { animation: 1 / 1 }
     const SMOOTHING = 0;
 
@@ -24,6 +25,8 @@ export default (function () {
         const ctx = canvas.getContext('2d');
         // canvas.width = WIDTH;
         // canvas.height = HEIGHT;
+        WIDTH = canvas.width;
+        HEIGHT = canvas.height;
         const audioCtx = new AudioContext();
         const audio = new Audio("passwordshow.wav");
         // audio.playbackRate = SPEED.animation;
@@ -76,8 +79,8 @@ export default (function () {
             }
             // debugger;
         }, 1000);
-        drawTimeData(timeData, ctx);
-        drawFrequency(frequencyData, ctx);
+        // drawTimeData(timeData, ctx);
+        // drawFrequency(frequencyData, ctx);
         octavesCompose(aComp, frequencyData);
 
         // drawCompo(aComp, frequencyData);
@@ -204,7 +207,7 @@ export default (function () {
             const hz = iBin * binsize;
             const amount = slize[iBin];
             // if (amount > 200) debugger;
-            let key = Util.n2Cell(i, aComp.bg);
+            let key = Util.n2Cell(i, aComp.grid);
 
             // Key is hz
             // if (amount > 200 || amount < 120)
@@ -225,7 +228,7 @@ export default (function () {
         // });
     }
 
-    function octavesCompose(aComp, frequencyData) {
+    function octavesCompose(aComp: SingleLayerComp, frequencyData) {
         analyzer.getByteFrequencyData(frequencyData);
 
         let slize = frequencyData.slice(window.min / binsize, window.max / binsize);
@@ -240,6 +243,7 @@ export default (function () {
             const hz = i * binsize;
             const amount = slize[i];
             let key = 0;
+            let vals = [];
             for (let j = 0; j < scaleArray.length; j++) {
                 const element = scaleArray[j];
                 let dif = hz - element;
@@ -252,6 +256,7 @@ export default (function () {
                     // console.log("x", x, "y", y);
                     key = Util.xy2Cell(x, y);
                     // key = Util.n2Cell(j, aComp.bg);
+                    vals = [j, x, y]
                     break;
                 }
             }
@@ -261,9 +266,9 @@ export default (function () {
             // Key is hz
             // if (amount > 200 || amount < 120)
             if (key && amount > 240)
-                aComp.set_bg(key, amount);
+                aComp.set(key, amount);
             else if (key && amount > 0)
-                aComp.set_bg(key, hz);
+                aComp.set(key, vals[0]);
         }
 
         let drawfun = function () {
@@ -365,7 +370,7 @@ export default (function () {
         }
 
         ctx.strokeStyle = "white";
-        ctx.font = '25px monospace';
+        ctx.font = '1em monospace';
         ctx.strokeText(`${ipeak}(${Math.round(ipeak * binsize)}hz),${peak}`, xpeak, HEIGHT - peak - 10);
         // console.log("x", x, "counts", x / barWidth, "shouldequal", skippedbins);
         // console.log(xvalues);
