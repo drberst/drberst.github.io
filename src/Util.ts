@@ -1,6 +1,8 @@
 import { Grid, Loc } from "./Classes.js";
 
 export default class Util {
+    static outtarget = "#out";
+    static outcount = 0;
     static audio = {
         hslToRgb: function (h, s, l) {
             let r;
@@ -68,7 +70,19 @@ export default class Util {
         const len = Util.GLOB.UPPER.length;
 
         if (num < len && num >= 0) return Util.GLOB.UPPER.charAt(num);
-        if (num - 26 >= 0) return Util.GLOB.UPPER.charAt(num - 26) + Util.num2Abc(num - 26);
+        if (num >= len) {
+            // debugger;
+            // let result = Util.GLOB.UPPER.charAt(num - len) + Util.num2Abc(num - len);
+            // while (num >= 0) {
+            //     num -= len;
+            //     result += "_" + Util.GLOB.UPPER.charAt(num % len)
+            // }
+            let next = Math.floor(num / len) - 1;
+            // console.log("inner", num, next);
+            return Util.num2Abc(next) + Util.GLOB.UPPER.charAt(num % len);
+        }
+        // if (num - 26 * 2 >= 0) return Util.GLOB.UPPER.charAt(num - 26 * 2) + Util.num2Abc(num - 26 * 2);
+        // if (num - 26 >= 0) return Util.GLOB.UPPER.charAt(num - 26) + Util.num2Abc(num - 26);
         console.log("num2abcfail", num)
         return "null";
     }
@@ -78,6 +92,7 @@ export default class Util {
         abc = abc.toUpperCase();
         if (abc.length === 1) return Util.GLOB.UPPER.indexOf(abc);
         if (abc.length === 2) return Util.GLOB.UPPER.length + Util.abc2Num(abc.substring(1));
+        if (abc.length === 3) return Util.GLOB.UPPER.length + Util.abc2Num(abc.substring(2));
         // if (abc.length === 2) return GLOB.UPPER.indexOf(abc.charAt(0)) + GLOB.UPPER.indexOf(abc.charAt(1))
 
         console.log("error in abc2Num");
@@ -131,7 +146,7 @@ export default class Util {
         return !Util.isNull(element);
     }
 
-    static ascii2CellList(iStart = new Loc(new Grid(3, 3), 0, 0), iAscii = ["_1"]) {
+    static ascii2CellList(iStart = Loc.new_fromGrid(new Grid(3, 3), 0, 0), iAscii = ["_1"]) {
         let start = iStart;
 
         let vOffset = start.x;
@@ -238,5 +253,13 @@ export default class Util {
         mean = mean / array.length;
         console.log("--- Measure array ---\n" + `min:(${imin},${min})`, "mean", mean, `max:(${imax},${max})`, "\ncycles:" + cycles, "Guess=" + Math.round(cycles * 1.46484375 * 2));
         console.log("array:\n" + result);
+    }
+
+    static out(contents) {
+        let textarea = Util.$(Util.outtarget)
+        let zeros = "000".substring(Util.outcount.toString().length);
+        textarea.value += "\n" + zeros + Util.outcount + ":" + contents;
+        textarea.scrollTop = textarea.scrollHeight;
+        Util.outcount++;
     }
 }

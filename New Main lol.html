@@ -21,7 +21,7 @@
         </div>
         <div class="grid-item two">Two<canvas></canvas></div>
         <div class="grid-item three">Three</div>
-        <div class="grid-item four"><textarea>Four</textarea></div>
+        <div class="grid-item four"><textarea id="out">Four</textarea></div>
     </div>
 
 </body>
@@ -37,11 +37,11 @@
 </script>
 <script type="module">
     import Util from "./build/Util.js";
-    import Main2 from "./build/new main lol.js";
+    import { Main } from "./build/new main lol.js";
     window.onload = (event) => {
-        Main2.TurnOnButtons();
+        Main();
         console.log('page is fully loaded');
-        Util.$id("b4").click();
+        // Util.$id("b4").click();
     }
 </script>
 

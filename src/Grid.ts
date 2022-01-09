@@ -50,6 +50,9 @@ export default class Grid {
     atLoc(Location: Loc) {
         return this.get(Location.getCellname());
     }
+    locate(key) {
+        return Loc.new_fromCell(this, key);
+    }
     toString(): string {
         let vals = Array.from(this.map.values());
         let result = "{\n";
@@ -80,7 +83,7 @@ export default class Grid {
             this.map.set(element, aStamp.get(element));
         }
     }
-    fromAscii(iAscii, origin = new Loc(this, 0, 0)) {
+    fromAscii(iAscii, origin = new Loc(this.cols, this.rows, 0, 0)) {
         let start = origin;
 
         let vOffset = start.x;
@@ -114,16 +117,28 @@ class Loc {
     public y: number;
     public max_y: number;
     // public reference_grid: Grid;
+    static new_fromGrid(grid = new Grid(5, 5), x, y) {
+        let result = new Loc()
+        result.x = x;
+        if (result.x > grid.cols) result.x -= grid.cols;
+        if (result.x < 0) result.x += grid.cols;
+        result.y = y;
+        if (result.y > grid.rows) result.y -= grid.rows;
+        if (result.y < 0) result.y += grid.rows;
+        result.max_x = grid.cols;
+        result.max_y = grid.rows;
+        return result;
+    }
 
-    constructor(grid = new Grid(5, 5), x = 0, y = 0) {
+    constructor(cols = 5, rows = 5, x = 0, y = 0) {
         this.x = x;
-        if (this.x > grid.cols) this.x -= grid.cols;
-        if (this.x < 0) this.x += grid.cols;
+        if (this.x > cols) this.x -= cols;
+        if (this.x < 0) this.x += cols;
         this.y = y;
-        if (this.y > grid.rows) this.y -= grid.rows;
-        if (this.y < 0) this.y += grid.rows;
-        this.max_x = grid.cols;
-        this.max_y = grid.rows;
+        if (this.y > rows) this.y -= rows;
+        if (this.y < 0) this.y += rows;
+        this.max_x = cols;
+        this.max_y = rows;
         // this.reference_grid = grid;
     }
 
@@ -133,11 +148,11 @@ class Loc {
         let x = Util.abc2Num(regresult[1])
         let y = Number(regresult[2]);
 
-        return new Loc(grid, x, y);
+        return Loc.new_fromGrid(grid, x, y);
     }
     static new_fromIndex(grid = new Grid(5, 5), n) {
         let xy = Util.n2Xy(n, grid);
-        return new Loc(grid, xy.X, xy.Y)
+        return Loc.new_fromGrid(grid, xy.X, xy.Y)
         // return Loc.new_fromCell(grid, Util.n2Cell(n, grid));
     }
     getCellname() {
@@ -152,12 +167,40 @@ class Loc {
         // return this;
         return Loc.new_fromIndex(new Grid(this.max_x, this.max_y), newIndex);
     }
-    shiftY(n = 1) { return new Loc(new Grid(this.max_x, this.max_y), this.x, this.y + n) };
-    shiftX(n = 1) { return new Loc(new Grid(this.max_x, this.max_y), this.x + n, this.y) };
+    // shiftY(n = 1) { return new Loc(new Grid(this.max_x, this.max_y), this.x, this.y + n) };
+    shiftX(n = 1) {
+        this.x += n;
+        while (this.x >= this.max_x) this.x -= this.max_x;
+        while (this.x < 0) this.x += this.max_x;
+    }
+    shiftY(n = 1) {
+        this.y += n;
+        while (this.y >= this.max_y) this.y -= this.max_y;
+        while (this.y < 0) this.y += this.max_y;
+    }
+    shiftXY(nx, ny) {
+        this.shiftX(nx);
+        this.shiftY(ny);
+        // return this;
+    }
+
     get8Neighbors() {
-        return [this.shiftY(-1).shiftX(-1), this.shiftY(-1), this.shiftY(-1).shiftX(1),
-        this.shiftX(-1), this.shiftX(1),
-        this.shiftY(1).shiftX(-1), this.shiftY(1), this.shiftY(1).shiftX(1),
-        ]
+        // let grid = new Grid(this.max_x, this.max_y);
+        let result = [];
+        let i = 0;
+        for (let y = -1; y <= 1; y++) {
+            for (let x = -1; x <= 1; x++) {
+                if (!(x === 0 && y === 0)) {
+                    let obj: Loc = new Loc(this.max_x, this.max_y, this.x, this.y);
+                    obj.shiftXY(x, y);
+                    result[i++] = obj.getCellname();
+                }
+            }
+        }
+        return result;
+    }
+    toString() {
+        // return `(${this.x},${this.y}) in G[${this.max_x}x${this.max_y}]`;
+        return this.getCellname();
     }
 }

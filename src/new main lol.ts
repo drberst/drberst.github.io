@@ -6,103 +6,13 @@
 5. Assembling into final complexity
 */
 
-let h = 6;
-let w = 18;
-const GLOB2 = { // Universal constants
-    HEIGHT: h, //Height / Y
-    WIDTH: w, //Width  / X
-    COUNT: h * w,
-    REFGRID: new Grid(w, h),
-    TILEPX: 40,
-    SPACING: 0,
-    container_div: "#layer_bg",
-    LOWER: "abcdefghijklmnopqrstuvqxyz",
-    UPPER: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-}
-const MAPS = { // Reality arisen from constants
-    id2cell: new Map(),
-    cell2val: new Map()
-}
-// const FUN = { // Utility functions that underly reality
-//     d: function (n) {
-//         return Math.floor(n * Math.random()) + 1;
-//     }
-// }
-
-class Nav {
-    static directions(id: number) {
-        return {
-            above: id - GLOB2.WIDTH,
-            below: id + GLOB2.WIDTH,
-            left: id - 1,
-            right: id + 1
-        }
-    }
-    static zDivrections = function (div: HTMLDivElement) {
-        let id = Number(div.id.substring(1));
-        return {
-            above: id - GLOB2.WIDTH,
-            below: id + GLOB2.WIDTH,
-            left: id - 1,
-            right: id + 1
-        }
-    }
-}
-
-import { Composition, Grid, Util } from "./Classes.js";
-function stampNumber() {
-    let pattern_1 = [
-        "11.",
-        ".1.",
-        ".1.",
-        ".1.",
-        "111"
-    ];
-    let pattern_2 = [
-        "222",
-        "..2",
-        ".2.",
-        "2..",
-        "222"
-    ];
-    let mainstage = new Composition("layer_2");
-    let grod = Grid.fromAscii(pattern_1);
-    let stamp = Grid.fromAscii(pattern_2);
-    grod.useStamp(stamp);
-}
-
-function n2CellTesting(aComp: Composition) {
-    let MAX = aComp.nWide * aComp.nTall;
-    for (let i = 0; i < MAX; i++) {
-
-        const randomCell = "bg_" + Util.n2Cell(i, aComp.bg);
-        console.log("testing", i, randomCell);
-
-    }
-}
-
-function CompositionTesting() {
-    let comp = new Composition({ comptainer: "layer_bg", TILEPX: GLOB2.TILEPX, SPACING: GLOB2.SPACING, nWide: GLOB2.WIDTH, nTall: GLOB2.HEIGHT });
-    comp.init();
-    // comp.set_bg("B1", 5);
-    // debugger;
-    // comp.fill(0);
-    comp.fillWithFunc(function () {
-        return Util.d(10) == 1 ? 1 : 0;
-    });
-    comp.refresh();
-    TurnOnButtons();
-    // Util.setIntervalX(() => comp.miniRando(10), 0, 100);
-    comp.miniRando(1000);
-    // comp.gameOfLife();
-    // n2CellTesting(comp);
-}// CompositionTesting();
-
 
 import Audio from "./Audio.js";
+import { Loc } from "./Grid.js";
 import SingleLayerComp from "./SingleLayerComp.js"
+import Util from "./Util.js";
 function musicalTesting() {
-    let comp = new SingleLayerComp({ comptainer: "layer_bg", TILEPX: GLOB2.TILEPX, SPACING: GLOB2.SPACING, nWide: 12, nTall: 12 });
+    let comp = new SingleLayerComp({ comptainer: "layer_bg", nWide: 12, nTall: 12 });
     // comp.fill(-1);
     comp.init();
     // comp.set_bg("B1", 5);
@@ -127,19 +37,104 @@ function musicalTesting() {
     // var bufferLength = analyser.frequencyBinCount;
     // var dataArray = new Uint8Array(bufferLength);
 };
+const G = {
+    len: 5
+}
+function Main() {
+    let comp = new SingleLayerComp({ comptainer: "layer_bg", nWide: 50, nTall: 50 });
+    // comp.fill(-1);
+    comp.init(-1);
+    // for (let i = 0; i < 26 * 26 + 29; i++) {
+    //     console.log(i, Util.num2Abc(i))
 
-function TurnOnButtons() {
-    // document.getElementById("b0").addEventListener("click", stages.reset);
-    // document.getElementById("b1").addEventListener("click", aComp);
-    // document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
-    // document.getElementById("b3").addEventListener("click", WriteNumber);
-    (document.getElementById("b4") as HTMLButtonElement).value = "Play";
-    document.getElementById("b4").addEventListener("click", musicalTesting);
+    // }
+
+    // comp.set("J15", 0)
+    // comp.set("K15", 0)
+    // comp.set("L15", 0)
+    comp.refresh();
+    initialPop(comp);
+    // let keys = comp.grid.map;
+    // let i = 0;
+    // for (let [k, v] of keys) {
+    //     const r = Math.floor(Math.random() * 5) + 1;
+    //     comp.grid.set(k, r);
+    // };
+    gameloop(comp, 0);
+    // setInterval((comp) => gameloop(comp), 200);
+}
+function gameloop(comp, i) {
+    // console.time();
+    let keys = comp.grid.map;
+    let old = new Map<string, number>(keys);
+
+    // let newGrid = new Grid(comp.)
+    for (let [k, v] of old) {
+        // if (v >= 0) {
+        let spot = comp.grid.locate(k);
+        let neighbors = spot.get8Neighbors();
+        // Util.out("old:" + spot)
+        // Util.out("neighbors:" + spot.get8Neighbors())
+        // console.log(spot.getCellname(), spot.get8Neighbors());
+        let LiveNeighbors = 0;
+        for (let n of neighbors) {
+            if (old.get(n) >= 0) LiveNeighbors++;
+        }
+        if (v >= 0) {
+            // if (LiveNeighbors > 0) console.log(k, LiveNeighbors)
+            if (LiveNeighbors < 2) comp.set(k, 0);
+            if (LiveNeighbors > 3) comp.set(k, 0);
+            if (LiveNeighbors === 2 || LiveNeighbors === 3) comp.set(k, v + 1);
+        } else {
+            if (LiveNeighbors === 3) comp.set(k, 1);
+            // else comp.set(k, -1)
+        }
+        if (v > 100) {
+            comp.fill(-1);
+            initialPop(comp);
+            break;
+            // comp.set(k, -1)
+        }
+        // console.log(LiveNeighbors)
+        // neighbors.for
+        // spot.shiftY(1);
+
+        // Util.out("new:" + spot)
+        // comp.set(k, v - 1);
+        // comp.set(spot.getCellname(), v);
+        // }
+    };
+    comp.refresh();
+    // console.timeEnd();
+    setTimeout(() => gameloop(comp, i + 1), 10);
+    // requestAnimationFrame(() => gameloop(comp, i + 1));
+}
+function getNeighbors(location: Loc) {
 
 }
-export default { TurnOnButtons }
-
+function initialPop(comp) {
+    let keys = comp.grid.map;
+    let i = 0;
+    for (let [k, v] of keys) {
+        // const r = Math.floor(Math.random() * 1);
+        const r2 = Math.random();
+        if (r2 >= .9 && i <= 100) {
+            comp.grid.set(k, 0);
+            i++
+        }
+        // Util.out(comp.grid.locate(k))
+    };
+    comp.refresh();
+}
+export { Main }
+// TurnOnButtons();
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // let test = visualizer();
 // test.getAudio();
 // musicalTesting();
+
+/**
+ * cellular algorithm
+ * populate random cells with some value
+ * run a function each frame that loops each cell and does something based on the current state
+ */

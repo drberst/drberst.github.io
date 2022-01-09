@@ -25,13 +25,14 @@ html {
     height: 100%;
 }
 body {
-    height: 80%;
+    height: 90%;
     width: 80%;
     margin: auto;
 }
 .wrapper {
     height: 100%;
     display: grid;
+    width: 70%;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
     grid-template-areas:
@@ -66,8 +67,9 @@ body {
 .four textarea {
     width: 100%;
     height: 100%;
-    /* box-sizing: border-box; */
-    /* background-color: darkgrey; */
+    box-sizing: border-box;
+    /* line-height: 1rem; */
+    /* background-image: repeating-linear-gradient(rgba(0, 0, 0, 0.3) 0.25rem 1.25rem, rgba(0, 0, 0, 0.1) 1.25rem 2.25rem); */
 }
 /* .five {
     grid-column: 2;
@@ -78,7 +80,7 @@ body {
     grid-row: 4;
 } */
 .grid-item {
-    background-color: #379ad6;
+    background-color: darkslategrey;
     color: #222;
     border: 1px solid BLACK;
 }
@@ -97,12 +99,12 @@ body {
     /* background-color: rgb(87, 2, 2); */
 }
 
-.container > div:nth-child(odd) {
+/* .container > div:nth-child(odd) {
     background-color: #444444;
 }
 .container > div:nth-child(even) {
     background-color: #cecece;
-}
+} */
 
 .tile {
     /***TEXT*/

@@ -34,7 +34,7 @@ export default class SingleLayerComp {
             this.redrawList.add(cell);
         }
     }
-    fill(value = 0) {
+    fill(value = undefined) {
         const grid = this.grid;
         for (let i = 0; i < grid.cols * grid.rows; i++) {
             const cell = Util.n2Cell(i, grid);
@@ -45,10 +45,6 @@ export default class SingleLayerComp {
         //     this.redrawList.add(key);
         // });
     }
-    // static fixkey(aKey) {
-    //     let parts = aKey.split("_");
-    //     if(parts.length > 0)
-    // }
 
     get(key: string) {
         const value = this.grid.get(key);
@@ -62,38 +58,29 @@ export default class SingleLayerComp {
         if (x > this.nWide || y > this.nTall || prev_val == undefined) {
             console.error("can't set", val, "to key", key, "because it out of range of", x, y)
             // debugger;
+        } else if (val === prev_val) {
+
         } else {
 
             this.grid.set(key, val);
             this.redrawList.add(key);
         }
     }
+    getKeys() {
+        return this.grid.map.keys;
+    }
     queue_redraw(key) {
         this.redrawList.add(key);
     }
-    // refresh2() {
-    //     // console.log("Drawing:", this.redrawList.size, "elements");
-    //     // console.timeStamp;
-
-    //     GridArtist.fillWrapperWithGrid(Util.$id(this.comptainer_id), this.grid, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
-    //     // let node = Util.$id(this.comptainer_id); debugger;
-    //     // node.innerHTML = gridHTML.innerHTML;
-    //     // Util.$id(this.comptainer_id).replaceWith(gridHTML);
-
-    //     this.redrawList = new Set();
-    //     // console.log(console.timeEnd());
-
-    // }
 
     refresh() {
         // console.time();
         // console.log("Drawing:", this.redrawList.size, "elements");
+        // Util.out("Drawing:" + this.redrawList.size + "elements");
 
         this.redrawList.forEach(id => {
-            // const bgid = "bg_"+id
             let element = Util.$id(id);
             if (element) {
-                // debugger;
                 let result = GridArtist.htmlForCell(this.grid, id);
                 element.replaceWith(result);
             }
@@ -101,16 +88,7 @@ export default class SingleLayerComp {
                 console.error("null value in refresh", id);
                 debugger;
             }
-
-            // element.outerHTML = result.outerHTML;
-            // element.textContent = result.textContent;
-            // element.className = result.className;
-            // element = result;
-            // element.innerText = String(val);
         });
-        // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { TILEPX: 24, name: this.comptainer + "-grid" })
-        // this.update(gridHTML);
-        // console.timeEnd();
         this.redrawList = new Set();
     }
     init(n?) {
@@ -119,7 +97,7 @@ export default class SingleLayerComp {
         // document.documentElement.style.setProperty('--compTop', this.nWide * (this.TILEPX + this.options.SPACING) + 'px');
         // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
         // this.append(gridHTML);
-        this.fill(n = 5);
+        this.fill(n);
         GridArtist.fillWrapperWithGrid(this.comptainer_id, this.grid)
         // let html_fg = document.createElement("div");
     }
@@ -131,46 +109,55 @@ export default class SingleLayerComp {
 
 
 class GridArtist {
+    static useset;// = "braille2";
+    static valsets = {
+        braille: "⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿".split(""),
+        braille2: "⠠⠤⠴⠶⠾⠿".split("")
+    }
+
     static htmlForCell(aGrid, cellname) {
         let cell = document.createElement("div");
         let val = aGrid.get(cellname);
-        if (val === undefined) val = -1;
+        // if (val === undefined) val = -1;
         cell.id = cellname;
-        cell.title = String(Loc.new_fromCell(aGrid, cellname).getIndex());
-        // cell.className = "tile level" + val;
+        cell.title = cellname + "-" + String(Loc.new_fromCell(aGrid, cellname).getIndex());
         cell.className = "tile";
         if (val >= 0) {
-            // const h = 0 + (val / 100) * 60;
-            // const s = 70;
-            // const l = (val < 25) ? 30 + val / 8 : 10 + val * .9;
-            // cell.style.color = "red";
-            // cell.style.backgroundColor = "hsl(" + val * 3.6 + ", 60%, " + (30 + val / 3) + "%)";
-            const [h, s, l] = [val + 100, 50, val / 255 * 45 + 5];
 
-            // if (frequencyData[i] > 200) debugger;
-            const [r, g, b] = Util.audio.hslToRgb(h, s, l);
-            // cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            let [h, s, l] = [val / 100 * 360, 50, val / 100 * 45 + 5];
+            if (GridArtist.useset !== undefined) {
+                const len = GridArtist.valsets[GridArtist.useset].length;
+                s = 50;
+                h = .3 * 360;
+                l = 25 + (1 - val / len) * 30;
+                // Util.out(val);
+                // debugger;
+            }
             cell.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
-        } else if (val == 0) {
-
+            // if (frequencyData[i] > 200) debugger;
+            // const [r, g, b] = Util.audio.hslToRgb(h, s, l);
+            // cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
         }
         // debugger;
         // Inner cell
         let inner_cell = document.createElement("div");
         inner_cell.id = cellname + "_val";
         // inner_cell.value = val;
-        inner_cell.innerText = val;
-        if (val === -1 || val === 0) {
-            inner_cell.innerText = cellname + "\n" + cell.title;
+        if (val === -1 || val === undefined) {
+            inner_cell.innerText = "";
+            // inner_cell.innerText = cellname;
+        } else if (GridArtist.useset !== undefined) {
+            inner_cell.innerText = GridArtist.valsets[GridArtist.useset][val];
+        } else {
+            // inner_cell.innerText = val;
         }
         inner_cell.className = "tileInner";
-        // cell.innerHTML = `<div class=tile2line>${val}</div>`;
+
         cell.appendChild(inner_cell);
         return cell;
     }
 
     static fillWrapperWithGrid(wrapper: HTMLElement, aGrid: Grid, options?): HTMLElement {
-        let index = 0;
         if (typeof wrapper === 'string') {
             wrapper = Util.$id(wrapper);
         }
@@ -184,9 +171,8 @@ class GridArtist {
             // setTimeout(() => {
             let cellname = Util.n2Cell(i, aGrid);
             let cell = GridArtist.htmlForCell(aGrid, cellname);
-            console.log(i, cellname, cell)
+            // console.log(i, cellname, cell)
             wrapper.append(cell);
-            index++;
             // }, i * 50)
         }
         return wrapper;
