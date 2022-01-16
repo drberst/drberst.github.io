@@ -15,7 +15,10 @@ const MAPS = {
     id2cell: new Map(),
     cell2val: new Map()
 };
-function TurnOnButtons() {
+function turnOnButtons() {
+    document.getElementById("b1").addEventListener("click", musicalTesting);
+    document.getElementById("b2").addEventListener("click", micTesting);
+    document.getElementById("b3").addEventListener("click", Audio.stop);
 }
 import { Grid, SingleLayerComp } from "./Classes.js";
 import Audio from "./Audio.js";
@@ -30,5 +33,5 @@ function micTesting() {
     comp.init(0);
     Audio.micVisualizer(comp);
 }
-export default { musicalTesting, micTesting };
+export default { musicalTesting, micTesting, turnOnButtons };
 //# sourceMappingURL=main.js.map

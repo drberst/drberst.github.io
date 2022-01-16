@@ -9,11 +9,17 @@ export default (function () {
     let analyzer;
     let bufferLength;
     let PLAYING = true;
+    let audioCtx;
     let window = {
         min: 0,
         max: 3000,
         size: function () { return this.max - this.min; }
     };
+    function stop() {
+        PLAYING = false;
+        if (audioCtx.state !== "closed")
+            audioCtx.close();
+    }
     function micVisualizer(aComp) {
         console.log("------------ Begin visualizer");
         const AllCanvas = document.querySelectorAll('canvas');
@@ -26,7 +32,7 @@ export default (function () {
             element.width = WIDTH;
             element.height = HEIGHT;
         }
-        const audioCtx = new AudioContext();
+        audioCtx = new AudioContext();
         if (navigator.mediaDevices.getUserMedia) {
             console.log('getUserMedia supported.');
             var constraints = { audio: true };
@@ -76,10 +82,10 @@ export default (function () {
             element.width = WIDTH;
             element.height = HEIGHT;
         }
-        const audioCtx = new AudioContext();
+        audioCtx = new AudioContext();
         const audio = new Audio("./media/Battle vs Gym Leader.mp3");
         const source = audioCtx.createMediaElementSource(audio);
-        let t = 60;
+        let t = 3;
         var listen = audioCtx.createGain();
         analyzer = audioCtx.createAnalyser();
         analyzer.smoothingTimeConstant = SMOOTHING;
@@ -428,6 +434,6 @@ export default (function () {
     }
     function getSpeed() { return (1000 / 60) / SPEED.animation; }
     ;
-    return { visualizer, mp3Visualizer, micVisualizer };
+    return { visualizer, mp3Visualizer, micVisualizer, stop };
 })();
 //# sourceMappingURL=Audio.js.map

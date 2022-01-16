@@ -24,13 +24,12 @@ const MAPS = { // Reality arisen from constants
     cell2val: new Map()
 }
 
-function TurnOnButtons() {
+function turnOnButtons() {
     // document.getElementById("b0").addEventListener("click", stages.reset);
     // document.getElementById("b1").addEventListener("click", aComp);
-    // document.getElementById("b2").addEventListener("click", SPELLS.CrazyTiles);
-    // document.getElementById("b3").addEventListener("click", WriteNumber);
-    // (document.getElementById("b4") as HTMLButtonElement).value = "Play";
-    // document.getElementById("b4").addEventListener("click", musicalTesting);
+    document.getElementById("b1").addEventListener("click", musicalTesting);
+    document.getElementById("b2").addEventListener("click", micTesting);
+    document.getElementById("b3").addEventListener("click", Audio.stop);
 }
 import { Grid, SingleLayerComp, Util } from "./Classes.js";
 
@@ -81,7 +80,7 @@ function micTesting() {
     Audio.micVisualizer(comp);
 
 }
-export default { musicalTesting, micTesting }
+export default { musicalTesting, micTesting, turnOnButtons }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // let test = visualizer();

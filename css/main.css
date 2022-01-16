@@ -88,8 +88,8 @@ canvas {
     grid-row: 4;
 } */
 .grid-item {
-    background-color: darkslategrey;
-    color: #222;
+    background-color: #222;
+    color: #aaa;
     border: 1px solid BLACK;
 }
 /*
