@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>CSS Grid Alignment Playground</title>
+    <!-- <link rel="stylesheet" href="css/main.css"> -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
     <!-- <link href="/favicon.ico" type="image/x-icon" rel="icon" /> -->
@@ -20,32 +21,18 @@
     <input id="b1" type="button" value="BuildGrid" />
     <input id="b2" type="button" value="RandomHighlight" />
     <input id="b3" type="button" value="WriteNumber" /> -->
-    <input id="b4" type="button" value="Automata" />
-    <div id="writable_area">
-        <!-- <h3>v016</h3> -->
-        <div id="layers">
-            <div id="layer_bg" class="container"></div>
+    <!-- <input id="b4" type="button" value="Automata" /> -->
+    <div class="wrapper">
+        <div class="grid-item one">
+
             <canvas></canvas>
         </div>
-    </div>
-    <!-- structure for composition -->
-    <!-- <div id="comptainer">
-        <div id="bg">
-            <div id="bg_row_n">
-                <div id="bg_A1">
-                    <div class="tile" id="bg_A1_content"></div>
-                </div>
-            </div>
+        <div class="grid-item two">Two<canvas></canvas></div>
+        <div class="grid-item three">
+            <div id="layer_bg" class="container">One</div><canvas></canvas>
         </div>
-        <div id="fg">
-            <div id="fg_row_n">
-                <div id="fg_A1">
-                    <div class="tile" id="fg_A1_content"></div>
-                </div>
-            </div>
-        </div>
+        <!-- <div class="grid-item four"><textarea id="out">Four</textarea></div> -->
     </div>
-    -->
 
 </body>
 
@@ -54,7 +41,6 @@
 <script type="module" src="build/Composition.js"></script>
 <script type="module" src="build/Grid.js"></script>
 <script type="module" src="build/Util.js"></script>
-<!-- <script type="module" src="build/Classes.js"></script> -->
 <script type="module" src="build/main.js">
 
 
@@ -63,9 +49,8 @@
     import Util from "./build/Util.js";
     import Main from "./build/main.js";
     window.onload = (event) => {
-        Main.TurnOnButtons();
         console.log('page is fully loaded');
-        Util.$id("b4").click();
+        Main.musicalTesting();
     }
 </script>
 

@@ -103,14 +103,17 @@ export default class Util {
     }
 
     static n2Xy = function (n, aGrid = Util.GLOB.REFGRID) {
-        return { X: Math.floor(n % aGrid.cols), Y: Math.floor(n / aGrid.cols) }
+        return [Math.floor(n % aGrid.cols), Math.floor(n / aGrid.cols)];
     }
     static n2Cell = function (n, aGrid = Util.GLOB.REFGRID) {
-        let temp = Util.n2Xy(n, aGrid);
-        return Util.xy2Cell(temp.X, temp.Y);
+        let [x, y] = Util.n2Xy(n, aGrid);
+        return Util.xy2Cell(x, y);
     }
 
     static cell2Xy = function (cellname, aGrid = Util.GLOB.REFGRID) {
+        if (typeof cellname != "string") {
+            console.error("ERROR BAD CELL NAME:", cellname);
+        }
         let regresult = cellname.match(/([A-Z]+)(\d+)/);
         // if (cellname.length > 3) debugger;
         let x = Util.abc2Num(regresult[1])
@@ -210,7 +213,9 @@ export default class Util {
         const t1 = performance.now();
         console.log(`Call to ${func} took ${t1 - t0} milliseconds.`);
     }
-
+    static round(number: number, decimalPlaces) {
+        return Number(Math.round(Number(number + "e" + decimalPlaces)) + "e-" + decimalPlaces)
+    }
     static arraySummary(array) {
         let result = ""
         let max = 0;

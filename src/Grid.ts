@@ -151,8 +151,8 @@ class Loc {
         return Loc.new_fromGrid(grid, x, y);
     }
     static new_fromIndex(grid = new Grid(5, 5), n) {
-        let xy = Util.n2Xy(n, grid);
-        return Loc.new_fromGrid(grid, xy.X, xy.Y)
+        let [x, y] = Util.n2Xy(n, grid);
+        return Loc.new_fromGrid(grid, x, y)
         // return Loc.new_fromCell(grid, Util.n2Cell(n, grid));
     }
     getCellname() {
@@ -202,5 +202,83 @@ class Loc {
     toString() {
         // return `(${this.x},${this.y}) in G[${this.max_x}x${this.max_y}]`;
         return this.getCellname();
+    }
+}
+
+
+
+class GridArtist {
+    static useset;// = "braille2";
+    static valsets = {
+        braille: "⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿".split(""),
+        braille2: "⠠⠤⠴⠶⠾⠿".split("")
+    }
+
+    static htmlForCell(aGrid, cellname) {
+        let cell = document.createElement("div");
+        let val = aGrid.get(cellname);
+        // if (val === undefined) val = -1;
+        cell.id = cellname;
+        let potentialTitle = aGrid[cellname + "-title"]
+        if (typeof potentialTitle !== "undefined") {
+            cell.title = potentialTitle;
+        } else
+            cell.title = cellname + "-" + String(Loc.new_fromCell(aGrid, cellname).getIndex());
+        cell.className = "tile";
+        const colorVal = (val);
+        if (val >= 0) {
+            const max = 1;
+            let [h, s, l] = [colorVal / max * 360 + 100, 80, colorVal / max * 50];
+            if (GridArtist.useset !== undefined) {
+                const len = GridArtist.valsets[GridArtist.useset].length;
+                s = 50;
+                h = .3 * 360;
+                l = 25 + (1 - val / len) * 30;
+                // Util.out(val);
+                // debugger;
+            }
+            cell.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+            // if (frequencyData[i] > 200) debugger;
+            // const [r, g, b] = Util.audio.hslToRgb(h, s, l);
+            // cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+        }
+        // debugger;
+        // Inner cell
+        let inner_cell = document.createElement("div");
+        inner_cell.id = cellname + "_val";
+        // inner_cell.value = val;
+        if (val === -1 || val === undefined) {
+            // inner_cell.innerText = "";
+            inner_cell.innerText = cellname;
+        } else if (GridArtist.useset !== undefined) {
+            inner_cell.innerText = GridArtist.valsets[GridArtist.useset][val];
+        } else {
+            inner_cell.innerText = Math.round(colorVal * 100) / 100 + "";
+        }
+        inner_cell.className = "tileInner";
+
+        cell.appendChild(inner_cell);
+        return cell;
+    }
+
+    static fillWrapperWithGrid(wrapper: HTMLElement, aGrid: Grid, options?): HTMLElement {
+        if (typeof wrapper === 'string') {
+            wrapper = Util.$id(wrapper);
+        }
+        wrapper.innerHTML = "";
+        wrapper.style.gridTemplateColumns = `repeat(${aGrid.cols},1fr)`;
+        wrapper.style.gridTemplateRows = `repeat(${aGrid.rows},1fr)`;
+
+        console.log("Filling wrapper with grid=", aGrid)
+
+        for (let i = 0; i < aGrid.size(); i++) {
+            // setTimeout(() => {
+            let cellname = Util.n2Cell(i, aGrid);
+            let cell = GridArtist.htmlForCell(aGrid, cellname);
+            // console.log(i, cellname, cell)
+            wrapper.append(cell);
+            // }, i * 50)
+        }
+        return wrapper;
     }
 }

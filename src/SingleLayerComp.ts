@@ -2,6 +2,7 @@ import { Grid, Loc, Util } from "./Classes.js";
 
 export default class SingleLayerComp {
     grid: Grid;
+
     // fg: Grid;
     nWide: number;
     nTall: number;
@@ -38,8 +39,7 @@ export default class SingleLayerComp {
         const grid = this.grid;
         for (let i = 0; i < grid.cols * grid.rows; i++) {
             const cell = Util.n2Cell(i, grid);
-            grid.set(cell, value);
-            this.redrawList.add(cell);
+            this.set(cell, value);
         }
         // this.bg.map.forEach((val, key) => {
         //     this.redrawList.add(key);
@@ -55,16 +55,33 @@ export default class SingleLayerComp {
         const [x, y] = Util.cell2Xy(key, this.grid);
         const prev_val = this.grid.get(key);
 
-        if (x > this.nWide || y > this.nTall || prev_val == undefined) {
-            console.error("can't set", val, "to key", key, "because it out of range of", x, y)
+        if (x > this.nWide || y > this.nTall) {
+            console.error("can't set", val, "to key", key, "because it out of range of", this.nWide, this.nTall)
             // debugger;
         } else if (val === prev_val) {
 
         } else {
-
             this.grid.set(key, val);
             this.redrawList.add(key);
         }
+    }
+    getN(n) {
+        this.get(Util.n2Cell(n, this.grid));
+    }
+    setN(n, val) {
+        this.set(Util.n2Cell(n, this.grid), val);
+    }
+
+    getProp(cell: string, propkey: string) {
+        if (!this.options[propkey]) {
+            return undefined;
+        }
+        return this.options[propkey][cell];
+    }
+    setProp(cell, propkey, val) {
+        if (this.options[propkey] === undefined)
+            this.options[propkey] = [];
+        this.options[propkey][cell] = val;
     }
     getKeys() {
         return this.grid.map.keys;
@@ -81,7 +98,7 @@ export default class SingleLayerComp {
         this.redrawList.forEach(id => {
             let element = Util.$id(id);
             if (element) {
-                let result = GridArtist.htmlForCell(this.grid, id);
+                let result = this.paintCell(id);
                 element.replaceWith(result);
             }
             else {
@@ -98,66 +115,17 @@ export default class SingleLayerComp {
         // let gridHTML = GridArtist.drawOnFreshCanvas(this.bg, { ...this.options, TILEPX: this.TILEPX, name: "bg" })
         // this.append(gridHTML);
         this.fill(n);
-        GridArtist.fillWrapperWithGrid(this.comptainer_id, this.grid)
+        this.initPainter();
+        // GridArtist.fillWrapperWithGrid(this.comptainer_id, this.grid)
         // let html_fg = document.createElement("div");
     }
     size() {
         return this.nWide * this.nTall;
     }
-}
 
-
-
-class GridArtist {
-    static useset;// = "braille2";
-    static valsets = {
-        braille: "⠁⠂⠃⠄⠅⠆⠇⠈⠉⠊⠋⠌⠍⠎⠏⠐⠑⠒⠓⠔⠕⠖⠗⠘⠙⠚⠛⠜⠝⠞⠟⠠⠡⠢⠣⠤⠥⠦⠧⠨⠩⠪⠫⠬⠭⠮⠯⠰⠱⠲⠳⠴⠵⠶⠷⠸⠹⠺⠻⠼⠽⠾⠿".split(""),
-        braille2: "⠠⠤⠴⠶⠾⠿".split("")
-    }
-
-    static htmlForCell(aGrid, cellname) {
-        let cell = document.createElement("div");
-        let val = aGrid.get(cellname);
-        // if (val === undefined) val = -1;
-        cell.id = cellname;
-        cell.title = cellname + "-" + String(Loc.new_fromCell(aGrid, cellname).getIndex());
-        cell.className = "tile";
-        if (val >= 0) {
-
-            let [h, s, l] = [val / 100 * 360, 50, val / 100 * 45 + 5];
-            if (GridArtist.useset !== undefined) {
-                const len = GridArtist.valsets[GridArtist.useset].length;
-                s = 50;
-                h = .3 * 360;
-                l = 25 + (1 - val / len) * 30;
-                // Util.out(val);
-                // debugger;
-            }
-            cell.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
-            // if (frequencyData[i] > 200) debugger;
-            // const [r, g, b] = Util.audio.hslToRgb(h, s, l);
-            // cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-        }
-        // debugger;
-        // Inner cell
-        let inner_cell = document.createElement("div");
-        inner_cell.id = cellname + "_val";
-        // inner_cell.value = val;
-        if (val === -1 || val === undefined) {
-            inner_cell.innerText = "";
-            // inner_cell.innerText = cellname;
-        } else if (GridArtist.useset !== undefined) {
-            inner_cell.innerText = GridArtist.valsets[GridArtist.useset][val];
-        } else {
-            // inner_cell.innerText = val;
-        }
-        inner_cell.className = "tileInner";
-
-        cell.appendChild(inner_cell);
-        return cell;
-    }
-
-    static fillWrapperWithGrid(wrapper: HTMLElement, aGrid: Grid, options?): HTMLElement {
+    initPainter() {
+        let wrapper = this.comptainer_id;
+        let aGrid = this.grid;
         if (typeof wrapper === 'string') {
             wrapper = Util.$id(wrapper);
         }
@@ -170,11 +138,49 @@ class GridArtist {
         for (let i = 0; i < aGrid.size(); i++) {
             // setTimeout(() => {
             let cellname = Util.n2Cell(i, aGrid);
-            let cell = GridArtist.htmlForCell(aGrid, cellname);
+            let cell = this.paintCell(cellname);
             // console.log(i, cellname, cell)
             wrapper.append(cell);
             // }, i * 50)
         }
         return wrapper;
     }
-};
+
+    paintCell(cellname) {
+        const max = this.options.max ? this.options.max : 10;
+        let wrapper = this.comptainer_id;
+        let aGrid = this.grid;
+
+        let cell = document.createElement("div");
+        let val = aGrid.get(cellname);
+        // if (val === undefined) val = -1;
+        cell.id = cellname;
+        let potentialTitle = this.getProp(cellname, "title");
+        if (typeof potentialTitle !== "undefined") {
+            cell.title = potentialTitle;
+        } else
+            cell.title = cellname + "-" + String(Loc.new_fromCell(aGrid, cellname).getIndex());
+        cell.className = "tile";
+        const colorVal = Util.round(val / max, 1);
+        if (val >= 0) {
+            const max = 1;
+            let [h, s, l] = [200, 80, colorVal * 50];
+            cell.style.backgroundColor = `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        // Inner cell
+        let inner_cell = document.createElement("div");
+        inner_cell.id = cellname + "_val";
+        // inner_cell.value = val;
+        if (val === -1 || val === undefined || val === NaN) {
+            // inner_cell.innerText = "";
+            inner_cell.innerText = cellname;
+        } else {
+            inner_cell.innerText = "" + "";
+        }
+        inner_cell.className = "tileInner";
+
+        cell.appendChild(inner_cell);
+        return cell;
+    }
+}
