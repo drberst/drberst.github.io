@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Random MtG Art Hopefully</title>
+        <!-- <link rel="stylesheet" href="css/main.css"> -->
+        <!-- <link rel="stylesheet" href="css/main.css"> -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
+        <!-- <link href="/favicon.ico" type="image/x-icon" rel="icon" /> -->
+        <link rel="shortcut icon" href="#">
+        <style>
+            #target {
+                font-size: 2em;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- <br><br><br><br> -->
+
+        <!-- <input id="b0" type="button" value="Reset" />
+    <input id="b1" type="button" value="BuildGrid" />
+    <input id="b2" type="button" value="RandomHighlight" />-->
+
+        <div class="wrapper">
+            <div id="target">Loading Card...</div>
+            <img id="targetImg" src="" />
+        </div>
+
+    </body>
+
+
+
+    </script>
+    <script type="module">
+        let targetDiv = document.getElementById("target");
+        let targetImg = document.getElementById("targetImg");
+        window.onload = (event) => {
+            fetch('https://api.scryfall.com/cards/random')
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data)
+                    targetImg.src = data.image_uris.art_crop
+                    if (data.flavor_text === undefined)
+                        targetDiv.innerHTML = data.name
+                    else
+                        targetDiv.innerHTML = data.flavor_text
+                })
+        }
+    </script>
+
+</html>
