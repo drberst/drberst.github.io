@@ -34,6 +34,9 @@
                 .then((data) => {
                     console.log(data)
 //                     targetImg.src = data.image_uris.art_crop
+                        let randomN1To24 = Math.floor(Math.random()*24+1)
+                        console.log("random",randomN1To24)
+                        targetImg.src = "./7e24/7e"+randomN1To24+".jpg"
                     if (data.flavor_text === undefined)
                         targetDiv.innerHTML = data.name
                     else
