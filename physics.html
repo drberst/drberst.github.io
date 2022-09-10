@@ -220,8 +220,8 @@
     </script>
 
     <script type="module">
-        import { Example as xChains } from "./chains.js";
-        import { Example as xConstraints } from "./constraints.js";
+        import { Example as xChains } from "./src/physics/chains.js";
+        import { Example as xConstraints } from "./src/physics/constraints.js";
         let Example = { ...xChains, ...xConstraints };
         // Example.constraints()
     </script>
@@ -235,11 +235,15 @@
             if (e.keyCode == '65') {
                 // Key A
                 constraintL.length -= shift;
+                Matter.Body.rotate(bodyL, -Math.PI / 12);
+
                 console.log(constraintL.length)
             }
             if (e.keyCode == '68') {
                 // Key D
                 constraintL.length += shift;
+                Matter.Body.rotate(bodyL, Math.PI / 12);
+
                 console.log(constraintR.length)
             }
 
@@ -258,6 +262,8 @@
                 // left arrow
                 constraintR.length += shift;
                 console.log(constraintR.length)
+                Matter.Body.rotate(bodyR, -Math.PI / 12);
+
                 // // Matter.Body.applyForce(bodyR, bodyR.position, { x: -.1, y: 0 })
             }
 
@@ -265,6 +271,8 @@
                 // right arrow
                 constraintR.length -= shift;
                 console.log(constraintR.length)
+                Matter.Body.rotate(bodyR, Math.PI / 12);
+
                 // // Matter.Body.applyForce(bodyR, bodyR.position, { x: .1, y: 0 })
             }
 
