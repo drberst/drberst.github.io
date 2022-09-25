@@ -148,9 +148,9 @@ Transposer.guitar2note = function (input) {
     let str = input.str;
     let fret = input.fret;
     if (str !== undefined && fret !== undefined) {
-        console.log("good Input:", input);
+        // console.log("good Input:", input);
         let result = GUITARNOTES[str][fret];
-        console.log("good result?", result);
+        // console.log("good result?", result);
         return result;
     } else {
         console.log("bad Input:", input);
