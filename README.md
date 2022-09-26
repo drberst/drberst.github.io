@@ -34,8 +34,8 @@ Building on the tab-notation project, this link will give a tab/audio/waveform f
 
 - First it finds all the C's, E's, and G's on the guitar between the 0th fret and 12th fret
 - Then it reduces those down so there's only one note for each guitar string
-- Choices are made randomly when reducing, so not guarunteed to contain all notes in the true C Major Chord (C/E/G). May contain multiple of the same note (like E3 played on both the A string and D string)
-- The chord probably won't be human playable. Both of those may be fixed in a future update.
+- Choices are made randomly when reducing, so not guaranteed to contain all notes in the true C Major Chord (C/E/G). May contain multiple of the same note (like E3 played on both the A string and D string)
+- The chord probably won't be human playable. May be fixed in a future update.
 - I'd also like to take display a snapshot of one frame of the waveform diagram, it moves so fast.
 - Also might be fun to let users rank or favorite certain chord inversions
 
