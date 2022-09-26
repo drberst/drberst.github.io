@@ -29,7 +29,7 @@ A newer project using Vexflow.js for musical notation and Tone.js for synthesize
 - Would like to be able to paste in ASCII tab or edit the tabs online somehow
 - Or read tabs from a file, possibly midi, musicXML, or a simple text format of some kind
 
-## [/music/guitar-chords](https://drberst.github.io/music/notation)
+## [/music/guitar-chords](https://drberst.github.io/music/guitar-chords)
 Building on the tab-notation project, this link will give a tab/audio/waveform for a random chord.
 
 - First it finds all the C's, E's, and G's on the guitar between the 0th fret and 12th fret
