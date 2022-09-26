@@ -3,30 +3,45 @@ Been working on web development skills lately, and the nice thing about web deve
 
 ## [/mtg](https://drberst.github.io/mtg)
 Fetches a random MTG image using https://api.scryfall.com
+
 - Also gets the flavor text of the card
 - If it has no flavor text, then it gets the card name
 
+
 ### [/mtg/daily.jpg](https://drberst.github.io/mtg/daily.jpg)
 I have an E-Ink picture frame that can display a jpg. So I needed an endpoint that was a raw jpg
+
 - Works similar to the code fetching above, but also has a python script to save the image to a file and then push that file to this website. Also adds text in an old MtG font. (see [/mtg/idk.py](https://github.com/drberst/drberst.github.io/blob/main/mtg/idk.py))
 - The image is called daily, but I didn't get that far. But all I would need to do is write code to run the python script when my computer starts, or run it every 24 hours on a raspberry pi server if I set one of those up in the future.
 
 
 ## [/audio](https://drberst.github.io/audio)
 An older project that creates several diagrams from the audio of an mp3
+
 - May or may not be able to use mic input
 - Someday will make a way for a user to choose an mp3, or web link like youtube or spotify
 - Also see /mic, might be the same thing, might be a newer or older version, will look into that at some point.
 
 
-
 ## [/music/tab-notation-and-sound](https://drberst.github.io/music/tab-notation-and-sound)
-A newer project using Vexflow for musical notation and Tone.js for synthesizers that play the musical score / tablature. Also displays the audio waveform using another library. Should be a good base for other projects I'd like to do between guitar, piano, and code.
+A newer project using Vexflow.js for musical notation and Tone.js for synthesizers that play the musical score / tablature. Also displays the audio waveform using another library. Should be a good base for other projects I'd like to do between guitar, piano, and code.
+
 - Would like to be able to paste in ASCII tab or edit the tabs online somehow
 - Or read tabs from a file, possibly midi, musicXML, or a simple text format of some kind
 
+## [/music/guitar-chords](https://drberst.github.io/music/notation)
+Building on the tab-notation project, this link will give a tab/audio/waveform for a random chord.
+
+- First it finds all the C's, E's, and G's on the guitar between the 0th fret and 12th fret
+- Then it reduces those down so there's only one note for each guitar string
+- Choices are made randomly when reducing, so not guarunteed to contain all notes in the true C Major Chord (C/E/G). May contain multiple of the same note (like E3 played on both the A string and D string)
+- The chord probably won't be human playable. Both of those may be fixed in a future update.
+- I'd also like to take display a snapshot of one frame of the waveform diagram, it moves so fast.
+- Also might be fun to let users rank or favorite certain chord inversions
+
 ## [/music/notation](https://drberst.github.io/music/notation)
 Just a nice looking example render provided in the Vexflow documentation. But in coding, in can be an achievement to get the screen to display anything at all. Hence most starting programs are just to print "Hello World". So this is my hello world for Vexflow.
+
 
 
 

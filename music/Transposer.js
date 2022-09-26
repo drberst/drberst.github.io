@@ -156,6 +156,58 @@ Transposer.guitar2note = function (input) {
         console.log("bad Input:", input);
     }
 };
+
+Transposer.fixChord = function (strArray) {
+    console.log("fix chord before:", strArray);
+    let counts = [[], [], [], [], [], []];
+    let onePerString = [];
+    for (let i = 0; i < strArray.length; i++) {
+        const element = strArray[i];
+        counts[element.str - 1].push(element);
+    }
+    for (let i = 0; i < counts.length; i++) {
+        const element = counts[i];
+        if (element.length > 1) {
+            // console.log("duplicate on string", element);
+            let max = element.length;
+            let roll = Math.floor(Math.random() * max);
+            // console.log("rolled", roll, "out of", max);
+            onePerString[i] = counts[i][roll];
+        } else {
+            onePerString[i] = counts[i][0];
+        }
+        // counts[element.str-1].push(element);
+    }
+    onePerString = onePerString.filter(function (element) {
+        return element !== undefined;
+    });
+    console.log("fix chord after:", onePerString);
+    return onePerString;
+};
+
+Transposer.note2guitar = function (noteName) {
+    let result = [];
+    for (let iStr = 1; iStr <= 6; iStr++) {
+        let index = GUITARNOTES[iStr].indexOf(noteName);
+        if (index === -1) {
+            let octave = 2;
+        } else {
+            result.push({ str: iStr, fret: index });
+        }
+    }
+    // console.log("Guitar Result:", result);
+    return result;
+};
+Transposer.note2guitar_allOctaves = function (noteName) {
+    let result = [];
+    // Guitar spans octaves E2 to E5
+    for (let octave = 2; octave <= 5; octave++) {
+        result = result.concat(Transposer.note2guitar(noteName + octave));
+    }
+    // console.log("Guitar Result:", result);
+    return result;
+};
+
 Transposer.freq2note = function (input) {
     const data = "thedata";
 
@@ -163,7 +215,7 @@ Transposer.freq2note = function (input) {
     var A4_INDEX = 57;
     var notes = ALLNOTES;
 
-    console.log("guitar result:", guitarresult);
+    // console.log("guitar result:", guitarresult);
 
     var MINUS = 0;
     var PLUS = 1;

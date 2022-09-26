@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Random A Major Chord</title>
+        <!-- <link rel="stylesheet" href="css/main.css"> -->
+        <!-- <link rel="stylesheet" href="css/main.css"> -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
+        <!-- <link href="/favicon.ico" type="image/x-icon" rel="icon" /> -->
+        <link rel="shortcut icon" href="#">
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            #target {
+                /* font-family: monospace */
+            }
+
+            #scope {
+                margin-left: 5px
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- <br><br><br><br> -->
+
+        <!-- <input id="b0" type="button" value="Reset" />
+    <input id="b1" type="button" value="BuildGrid" />
+    <input id="b2" type="button" value="RandomHighlight" />-->
+        <p> Refresh the page to get a different random C Major chord. </p>
+        <p>Press play to sound the chord.</p>
+        <div id="output"></div>
+        <p id="notes">The Notes in this random chord are: </p>
+        <button onclick="playNote()">Play</button>
+        <div id="scope"></div>
+
+        <!-- <div class="wrapper">
+            <div id="target">Loading Card...</div>
+            <img id="targetImg" src="" />
+        </div> -->
+
+    </body>
+
+    <script type="module" src="Vexflow/entry/vexflow.js"></script>
+    <script type="module">
+        // ----------------------------------------------------------------------------- SETUP
+        import Vex from "./Vexflow/entry/vexflow.js"
+        import { BarlineType, Registry } from "./Vexflow/entry/vexflow.js";
+        import poser from "./Transposer.js"
+        const concat = (a, b) => a.concat(b);
+        const { Renderer, TabStave, TabNote, Bend, Vibrato, Formatter } = Vex.Flow;
+
+
+        // ----------------------------------------------------------------------------- Vexflow
+        const div = document.getElementById("output");
+        const renderer = new Renderer(div, Renderer.Backends.SVG);
+
+        // Configure the rendering context.
+        renderer.resize(500, 150);
+        const context = renderer.getContext();
+
+        // Create a tab stave of width 400 at position 10, 40 on the canvas.
+        const stave = new TabStave(10, 0, 400);
+        stave.addClef("tab").setContext(context).draw();
+
+
+        // ----------------------------------------------------------------------------- Guitar
+        var my_positions = []
+
+        // my_positions.push({ str: 2, fret: 6 })
+        my_positions.push({ str: 1, fret: 2 })
+        my_positions.push({ str: 2, fret: 3 })
+        my_positions.push({ str: 3, fret: 2 })
+        my_positions.push({ str: 4, fret: 0 })
+
+
+        // my_positions = poser.note2guitar("A4")
+        my_positions = poser.note2guitar_allOctaves("C")
+        my_positions = my_positions.concat(poser.note2guitar_allOctaves("E"))
+        my_positions = my_positions.concat(poser.note2guitar_allOctaves("G"))
+        // let my_positions2 = poser.note2guitar("C4")
+        // my_positions = my_positions.concat(my_positions2)
+        // my_positions = my_positions.concat(poser.note2guitar("E4"))
+        my_positions = poser.fixChord(my_positions)
+        window.my_positions = my_positions
+        console.log("window.my_positions is:", window.my_positions)
+
+
+        // ----------------------------------------------------------------------------- Vexflow 2
+        let notes = [
+            // A single note
+
+            new TabNote({
+                // positions: [{ str: 3, fret: 7 }],
+                positions: my_positions,
+                duration: "q",
+            }),
+
+        ];
+
+        Formatter.FormatAndDraw(context, stave, notes);
+        // export default
+    </script>
+    <script src="http://unpkg.com/tone"></script>
+    <script src="https://cdn.jsdelivr.net/npm/oscilloscope@1.x/dist/oscilloscope.min.js"></script>
+
+    <script type="module">
+        // ----------------------------------------------------------------------------- SYNTH STUFF
+        // import * as Tone from './Tone.js'
+        import poser from "./Transposer.js"
+
+
+        // Guitar Notes to Synth
+        // console.log("poser is ", poser)
+        let data = "test";
+        let translatedNotes = []
+        window.my_positions.forEach(element => {
+            let aNote = poser.guitar2note(element)
+            translatedNotes.push(aNote)
+        });
+
+        console.log("positions:", translatedNotes)
+        const notesDiv = document.getElementById("notes");
+        notesDiv.append(translatedNotes)
+        let synthOptions = {
+            oscillator: {
+                type: "sine",
+                volume: -10
+            }
+        }
+        // let multisynth = [new Tone.Synth(synthOptions).toDestination(), new Tone.Synth().toDestination(), new Tone.Synth().toDestination(), new Tone.Synth().toDestination()]
+        let multisynth = [];
+        for (let i = 0; i < 8; i++) {
+            multisynth.push(new Tone.Synth(synthOptions).toDestination())
+
+        }
+
+        // multisynth[0].oscillator.type = "sine"
+        // console.log("main synth", multisynth[0])
+
+        window.playNote = function () {
+            // create a synth
+            const synth = new Tone.Synth().toDestination();
+            const now = Tone.now()
+
+            let synthIndex = 0;
+            // play a note from that synth
+            translatedNotes.forEach(element => {
+                multisynth[synthIndex].triggerAttackRelease(element, "2n", now);
+                synthIndex++;
+            });
+        }
+
+        //----------------------------------------------------------------------------- Oscilloscope
+        const canvas = document.createElement('canvas')
+        canvas.width = 500
+        canvas.height = 300
+        document.getElementById("scope").appendChild(canvas)
+        var audioContext = new window.AudioContext()
+
+
+        // create source from html5 audio element
+        // var source = audioContext.createMediaElementSource(audioElement)
+
+        // attach oscilloscope
+        let target = Tone.getDestination().output.output._nativeAudioNode;
+        // console.log("scope target=", target)
+        var scope = new Oscilloscope(target)
+
+        // start default animation loop
+        scope.animate(canvas.getContext("2d"))
+        // ----------------------------------------------------------------------------- Start Audio
+        document.querySelector('button')?.addEventListener('click', async () => {
+            await Tone.start()
+            // console.log('audio is ready')
+        })
+    </script>
+
+</html>
