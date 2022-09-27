@@ -1,4 +1,4 @@
-# Dylan's Web Projects
+# The Web Projects of Dylan R. Berst
 Been working on web development skills lately, and the nice thing about web development is that I can share these coding projects online without people having to download or install anything. Most work on mobile too, but I haven't tested very much. Most are unfinished, but work well enough to take a look at.
 
 ## [/mtg](https://drberst.github.io/mtg)
@@ -36,7 +36,7 @@ Building on the tab-notation project, this link will give a tab/audio/waveform f
 - Then it reduces those down so there's only one note for each guitar string
 - Choices are made randomly when reducing, so not guaranteed to contain all notes in the true C Major Chord (C/E/G). May contain multiple of the same note (like E3 played on both the A string and D string)
 - The chord probably won't be human playable. May be fixed in a future update.
-- I'd also like to take display a snapshot of one frame of the waveform diagram, it moves so fast.
+- I'd also like to take display a snapshot of one frame of the waveform diagram, it moves so fast. (Future Dylan: This has been now been done)
 - Also might be fun to let users rank or favorite certain chord inversions
 
 ## [/music/notation](https://drberst.github.io/music/notation)
