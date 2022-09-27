@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Random C Major Chord</title>
+        <title>Random C Chord</title>
         <!-- <link rel="stylesheet" href="css/main.css"> -->
         <!-- <link rel="stylesheet" href="css/main.css"> -->
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=VT323">
@@ -20,8 +20,63 @@
                 /* font-family: monospace */
             }
 
+            .modal img {
+                border: 1px solid black;
+                width: 25%;
+                margin: 1%;
+                display: flexbox
+            }
+
             #scope {
                 margin-left: 5px
+            }
+
+            /* The Modal (background) */
+            .modal {
+                display: none;
+                /* Hidden by default */
+                position: fixed;
+                /* Stay in place */
+                z-index: 1;
+                /* Sit on top */
+                left: 0;
+                top: 0;
+                width: 100%;
+                /* Full width */
+                height: 100%;
+                /* Full height */
+                overflow: auto;
+                /* Enable scroll if needed */
+                background-color: rgb(0, 0, 0);
+                /* Fallback color */
+                background-color: rgba(0, 0, 0, 0.4);
+                /* Black w/ opacity */
+            }
+
+            /* Modal Content/Box */
+            .modal-content {
+                background-color: #fefefe;
+                margin: 5% auto;
+                /* 15% from the top and centered */
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                /* Could be more or less, depending on screen size */
+            }
+
+            /* The Close Button */
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
             }
         </style>
     </head>
@@ -34,14 +89,27 @@
     <input id="b2" type="button" value="RandomHighlight" />-->
         <p> Refresh the page to get a different random C Major chord. </p>
         <p>Press play to sound the chord.</p>
+
         <div id="output"></div>
         <p id="notes">The Notes in this random chord are: </p>
         <button onclick="playNote()">Play</button>
+        <button id="myBtn" style="display:none">View Waveforms</button>
         <div id="scope"></div>
+        <!-- Trigger/Open The Modal -->
 
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <p>Right click to open, save, or copy an image</p>
+                <div id="stillframe"></div>
+            </div>
+
+        </div>
         <!-- <div class="wrapper">
             <div id="target">Loading Card...</div>
-            <img id="targetImg" src="" />
         </div> -->
 
     </body>
@@ -54,6 +122,7 @@
         import poser from "./Transposer.js"
         const concat = (a, b) => a.concat(b);
         const { Renderer, TabStave, TabNote, Bend, Vibrato, Formatter } = Vex.Flow;
+
 
 
         // ----------------------------------------------------------------------------- Vexflow
@@ -117,6 +186,7 @@
 
         // Guitar Notes to Synth
         // console.log("poser is ", poser)
+
         let data = "test";
         let translatedNotes = []
         window.my_positions.forEach(element => {
@@ -133,7 +203,6 @@
                 volume: -10
             }
         }
-        // let multisynth = [new Tone.Synth(synthOptions).toDestination(), new Tone.Synth().toDestination(), new Tone.Synth().toDestination(), new Tone.Synth().toDestination()]
         let multisynth = [];
         for (let i = 0; i < 8; i++) {
             multisynth.push(new Tone.Synth(synthOptions).toDestination())
@@ -151,15 +220,34 @@
             let synthIndex = 0;
             // play a note from that synth
             translatedNotes.forEach(element => {
-                multisynth[synthIndex].triggerAttackRelease(element, "2n", now);
+                multisynth[synthIndex].triggerAttackRelease(element, 1, now);
                 synthIndex++;
             });
+            for (let i = 0; i < 9; i++) {
+                setTimeout(() => {
+                    shoot()
+                }, 130 + i * 20);
+            }
+            // setTimeout(() => {
+            //     shoot()
+            // }, 130);
+
+            // setTimeout(() => {
+            //     shoot()
+            // }, 200);
+
+            // setTimeout(() => {
+            //     shoot()
+            // }, 210);
+            var modal = document.getElementById("myBtn");
+            modal.style.display = "inline-block";
         }
 
         //----------------------------------------------------------------------------- Oscilloscope
         const canvas = document.createElement('canvas')
         canvas.width = 500
         canvas.height = 300
+        canvas.id = "scope-canvas"
         document.getElementById("scope").appendChild(canvas)
         var audioContext = new window.AudioContext()
 
@@ -174,11 +262,103 @@
 
         // start default animation loop
         scope.animate(canvas.getContext("2d"))
+
+
         // ----------------------------------------------------------------------------- Start Audio
         document.querySelector('button')?.addEventListener('click', async () => {
             await Tone.start()
             // console.log('audio is ready')
         })
+    </script>
+    <script>
+        var videoId = 'scope-canvas';
+        var scaleFactor = 1;
+        var snapshots = [];
+
+        /**
+         * Captures a image frame from the provided video element.
+         *
+         * @param {Video} video HTML5 video element from where the image frame will be captured.
+         * @param {Number} scaleFactor Factor to scale the canvas element that will be return. This is an optional parameter.
+         *
+         * @return {Canvas}
+         */
+        function capture(video, scaleFactor) {
+            if (scaleFactor == null) {
+                scaleFactor = 1;
+            }
+
+            var w = video.width * scaleFactor;
+            var h = video.height * scaleFactor;
+            var canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, w, h);
+            return canvas;
+        }
+
+        /**
+         * Invokes the &lt;code&gt;capture&lt;/code&gt; function and attaches the canvas element to the DOM.
+         */
+        function shoot() {
+            var video = document.getElementById(videoId);
+            var output = document.getElementById('stillframe');
+            var img = document.getElementById('test');
+            var canvas = capture(video, scaleFactor);
+            canvas.onclick = function () {
+
+                // window.open(url);
+            };
+
+
+            // snapshots.unshift(canvas);
+            snapshots.push(canvas);
+            output.innerHTML = '';
+            // console.log("snapshots", snapshots)
+            for (var i = 0; i < 9; i++) {
+                let element = snapshots[i]
+                // console.log("i", i, "element", element)
+                if (snapshots[i] !== undefined) {
+                    var image = new Image();
+                    image.src = element.toDataURL();
+                    // img.target = image.src;
+                    image.onclick = function (target) {
+                        console.log(this.src)
+                        // window.open(target.src)
+                    }
+                    output.appendChild(image);
+                }
+                // img.src = "TESTTESTSET"
+            }
+        }
+    </script>
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("myBtn");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks on the button, open the modal
+        btn.onclick = function () {
+            modal.style.display = "block";
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function () {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
 
 </html>
