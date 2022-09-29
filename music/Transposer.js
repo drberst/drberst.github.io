@@ -158,7 +158,7 @@ Transposer.guitar2note = function (input) {
 };
 
 Transposer.fixChord = function (strArray) {
-    console.log("fix chord before:", strArray);
+    // console.log("--fix chord before:", strArray);
     let counts = [[], [], [], [], [], []];
     let onePerString = [];
     for (let i = 0; i < strArray.length; i++) {
@@ -181,7 +181,7 @@ Transposer.fixChord = function (strArray) {
     onePerString = onePerString.filter(function (element) {
         return element !== undefined;
     });
-    console.log("fix chord after:", onePerString);
+    // console.log("--fix chord after:", onePerString);
     return onePerString;
 };
 
@@ -200,11 +200,20 @@ Transposer.note2guitar = function (noteName) {
 };
 Transposer.note2guitar_allOctaves = function (noteName) {
     let result = [];
+    // console.log("--note2guitar_allOctaves Input:", noteName);
+
+    // Remove number
+    // debugger;
+    if (!isNaN(noteName.slice(-1))) {
+        // console.log("--Slicing from", noteName);
+        noteName = noteName.slice(0, noteName.length - 1);
+        // console.log("--Sliced to", noteName);
+    }
     // Guitar spans octaves E2 to E5
     for (let octave = 2; octave <= 5; octave++) {
         result = result.concat(Transposer.note2guitar(noteName + octave));
     }
-    // console.log("Guitar Result:", result);
+    // console.log("note2guitar_allOctaves Result:", result);
     return result;
 };
 
@@ -284,4 +293,25 @@ Transposer.freq2note = function (input) {
     return this;
 };
 
+Transposer.majorTriad = function (rootNote) {
+    // console.log("triad input is", rootNote);
+
+    let index = ALLNOTES.indexOf(rootNote);
+    let majorThird = ALLNOTES[index + 4];
+    let majorFifth = ALLNOTES[index + 7];
+    let result = [rootNote, majorThird, majorFifth];
+    // console.log("triad result is", result);
+    return result;
+};
+
+Transposer.minorTriad = function (rootNote) {
+    // console.log("triad input is", rootNote);
+
+    let index = ALLNOTES.indexOf(rootNote);
+    let majorThird = ALLNOTES[index + 3];
+    let majorFifth = ALLNOTES[index + 7];
+    let result = [rootNote, majorThird, majorFifth];
+    // console.log("triad result is", result);
+    return result;
+};
 export default Transposer;

@@ -36,8 +36,12 @@ Building on the tab-notation project, this link will give a tab/audio/waveform f
 - Then it reduces those down so there's only one note for each guitar string
 - Choices are made randomly when reducing, so not guaranteed to contain all notes in the true C Major Chord (C/E/G). May contain multiple of the same note (like E3 played on both the A string and D string)
 - The chord probably won't be human playable. May be fixed in a future update.
-- I'd also like to take display a snapshot of one frame of the waveform diagram, it moves so fast. (Future Dylan: This has been now been done)
 - Also might be fun to let users rank or favorite certain chord inversions
+
+#### 9-29-22:
+- Added form to select root note and Major/Minor for the chord
+- There's also now a button to regenerate the chord without having to refresh the page
+- Also have a button to view a gallery of 9 screenshots from the oscilloscope output
 
 ## [/music/notation](https://drberst.github.io/music/notation)
 Just a nice looking example render provided in the Vexflow documentation. But in coding, in can be an achievement to get the screen to display anything at all. Hence most starting programs are just to print "Hello World". So this is my hello world for Vexflow.

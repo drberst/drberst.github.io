@@ -22,9 +22,11 @@
 
             .modal img {
                 border: 1px solid black;
-                width: 25%;
-                margin: 1%;
-                display: flexbox
+                min-width: 200px;
+                max-width: 25%;
+                margin: 0.5%;
+                padding: 2%;
+                display: inline;
             }
 
             #scope {
@@ -56,11 +58,11 @@
             /* Modal Content/Box */
             .modal-content {
                 background-color: #fefefe;
-                margin: 5% auto;
+                margin: 5px 5%;
                 /* 15% from the top and centered */
                 padding: 20px;
                 border: 1px solid #888;
-                width: 80%;
+                /* width: 80%; */
                 /* Could be more or less, depending on screen size */
             }
 
@@ -87,20 +89,42 @@
         <!-- <input id="b0" type="button" value="Reset" />
     <input id="b1" type="button" value="BuildGrid" />
     <input id="b2" type="button" value="RandomHighlight" />-->
-        <p> Refresh the page to get a different random C Major chord. </p>
-        <p>Press play to sound the chord.</p>
+        <p> Choose a root note </p>
+        <form id="rootNote">
+            <input type="radio" id="A" name="rootNote" value="A">
+            <label for="A">A</label>
+            <input type="radio" id="B" name="rootNote" value="B">
+            <label for="B">B</label>
+            <input type="radio" id="C" name="rootNote" value="C" checked="checked">
+            <label for="C">C</label>
+            <input type="radio" id="D" name="rootNote" value="D">
+            <label for="D">D</label>
+            <input type="radio" id="E" name="rootNote" value="E">
+            <label for="E">E</label>
+            <input type="radio" id="F" name="rootNote" value="F">
+            <label for="F">F</label>
+            <input type="radio" id="G" name="rootNote" value="G">
+            <label for="G">G</label>
+        </form>
+        <p> And Major or Minor </p>
+        <form>
+            <input type="radio" id="Major" name="radio_key" value="Major" checked="checked">
+            <label for="Major">Major</label>
+            <input type="radio" id="Minor" name="radio_key" value="Minor">
+            <label for="Minor">Minor</label>
+        </form>
+        <p>Press <button onclick="generateChord()">Generate</button> to generate a chord</p>
+
+        <p>Press <button onclick="playNote()">Play</button> to sound the chord.</p>
 
         <div id="output"></div>
         <p id="notes">The Notes in this random chord are: </p>
-        <button onclick="playNote()">Play</button>
+
+        <!-- <button id="record" onclick="RecordCompositeWaveform()">Record Composite Waveform</button> -->
         <button id="myBtn" style="display:none">View Waveforms</button>
         <div id="scope"></div>
-        <!-- Trigger/Open The Modal -->
 
-        <!-- The Modal -->
         <div id="myModal" class="modal">
-
-            <!-- Modal content -->
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <p>Right click to open, save, or copy an image</p>
@@ -108,13 +132,11 @@
             </div>
 
         </div>
-        <!-- <div class="wrapper">
-            <div id="target">Loading Card...</div>
-        </div> -->
-
     </body>
 
-    <script type="module" src="Vexflow/entry/vexflow.js"></script>
+    <script type="module" src="Vexflow/entry/vexflow.js">   </script>
+    <script src="https://unpkg.com/tone"></script>
+    <script src="https://cdn.jsdelivr.net/npm/oscilloscope@1.x/dist/oscilloscope.min.js"></script>
     <script type="module">
         // ----------------------------------------------------------------------------- SETUP
         import Vex from "./Vexflow/entry/vexflow.js"
@@ -126,6 +148,8 @@
 
 
         // ----------------------------------------------------------------------------- Vexflow
+        // window.setupStaff = function () {
+
         const div = document.getElementById("output");
         const renderer = new Renderer(div, Renderer.Backends.SVG);
 
@@ -136,113 +160,247 @@
         // Create a tab stave of width 400 at position 10, 40 on the canvas.
         const stave = new TabStave(10, 0, 400);
         stave.addClef("tab").setContext(context).draw();
+        // }
 
 
-        // ----------------------------------------------------------------------------- Guitar
-        var my_positions = []
-
-        // my_positions.push({ str: 2, fret: 6 })
-        my_positions.push({ str: 1, fret: 2 })
-        my_positions.push({ str: 2, fret: 3 })
-        my_positions.push({ str: 3, fret: 2 })
-        my_positions.push({ str: 4, fret: 0 })
+        // ------------------------------------------------------------------------ Guitar Positions
 
 
-        // my_positions = poser.note2guitar("A4")
-        my_positions = poser.note2guitar_allOctaves("C")
-        my_positions = my_positions.concat(poser.note2guitar_allOctaves("E"))
-        my_positions = my_positions.concat(poser.note2guitar_allOctaves("G"))
-        // let my_positions2 = poser.note2guitar("C4")
-        // my_positions = my_positions.concat(my_positions2)
-        // my_positions = my_positions.concat(poser.note2guitar("E4"))
-        my_positions = poser.fixChord(my_positions)
-        window.my_positions = my_positions
-        console.log("window.my_positions is:", window.my_positions)
+        window.generateChord = function () {
+            const div = document.getElementById("output");
+            // const context = renderer.getContext();
 
+            // const renderer = new Renderer(div, Renderer.Backends.SVG);
 
-        // ----------------------------------------------------------------------------- Vexflow 2
-        let notes = [
-            // A single note
+            // Configure the rendering context.
+            // renderer.resize(500, 150);
+            // const context = renderer.getContext();
+            // context.rect(0, 0, 500, 150, { stroke: 'none', fill: 'white' });
+            // output.innerHTML = ""
+            // const stave = new TabStave(10, 0, 400);
+            // stave.addClef("tab").setContext(context).draw();
+            // while (output.hasChildNodes()) {
+            let svg = output.firstChild;
+            if (svg.children.length > 1) {
+                // console.log("I'd like to remove the last child of svg=", svg.children[1])
+                svg.removeChild(svg.children[1]);
+                // console.log("last child should be gone now:", svg.children[1])
+            }
+            // }
 
-            new TabNote({
-                // positions: [{ str: 3, fret: 7 }],
-                positions: my_positions,
-                duration: "q",
-            }),
+            var my_positions = []
+            let radio_rootNote = document.querySelector("input[name='rootNote']:checked")
+            let radio_key = document.querySelector("input[name='radio_key']:checked")
+            let form = document.getElementById("rootNote");
+            // console.log("----Form is", form)
+            console.log("> New Chord: Rootnote is", radio_rootNote.value)
+            console.log("Key is", radio_key.value)
+            let triad = poser.majorTriad(radio_rootNote.value + "3")
+            if (radio_key.value !== "Major") {
+                triad = poser.minorTriad(radio_rootNote.value + "3")
+            }
+            // console.log("Triad is", triad)
 
-        ];
+            for (let i = 0; i < triad.length; i++) {
+                const element = triad[i];
+                let allOctaves = poser.note2guitar_allOctaves(element)
+                my_positions = my_positions.concat(allOctaves)
+            }
+            // poser.ALLNOTES;
+            // my_positions = poser.note2guitar("A4")
+            // my_positions = poser.note2guitar_allOctaves("C3")
+            // my_positions = my_positions.concat(poser.note2guitar_allOctaves("E"))
+            // my_positions = my_positions.concat(poser.note2guitar_allOctaves("G"))
+            // let my_positions2 = poser.note2guitar("C4")
+            // my_positions = my_positions.concat(my_positions2)
+            // my_positions = my_positions.concat(poser.note2guitar("E4"))
+            my_positions = poser.fixChord(my_positions)
+            window.my_positions = my_positions
+            console.log("window.my_positions is:", window.my_positions)
 
-        Formatter.FormatAndDraw(context, stave, notes);
-        // export default
+            // ----------------------------------------------------------------------------- Vexflow 2
+            let notes = [
+
+                new TabNote({
+                    // positions: [{ str: 3, fret: 7 }],
+                    positions: my_positions,
+                    duration: "q",
+                    scale: 10
+                }),
+
+            ];
+
+            Formatter.FormatAndDraw(context, stave, notes);
+            let translatedNotes = []
+            window.my_positions.forEach(element => {
+                let aNote = poser.guitar2note(element)
+                translatedNotes.push(aNote)
+            });
+
+            console.log("translatedNotes:", translatedNotes)
+            const notesDiv = document.getElementById("notes");
+            notesDiv.innerHTML = "The Notes in this random chord are: "
+            notesDiv.append(translatedNotes)
+            window.playNote = function () {
+                // create a synth
+                let synthOptions = {
+                    oscillator: {
+                        type: "sine",
+                        volume: -10
+                    }
+                }
+                let multisynth = [];
+                for (let i = 0; i < 8; i++) {
+                    multisynth.push(new Tone.Synth(synthOptions).toDestination())
+
+                }
+                const synth = new Tone.Synth().toDestination();
+                const now = Tone.now()
+
+                let synthIndex = 0;
+                // play a note from that synth
+                translatedNotes.forEach(element => {
+                    multisynth[synthIndex].triggerAttackRelease(element, 1, now);
+                    synthIndex++;
+                });
+                for (let i = 0; i < 9; i++) {
+                    setTimeout(() => {
+                        Camera.shoot()
+                    }, 130 + i * 20);
+                }
+                var modal = document.getElementById("myBtn");
+                modal.style.display = "inline-block";
+            }
+        }
+
+        let Camera = {
+            videoId: 'scope-canvas',
+            snapshots: [],
+            shoot: function () {
+                var video = document.getElementById(Camera.videoId);
+                // var canvas = shootStep2(video, Camera.scaleFactor);
+
+                let w = video.width
+                let h = video.height
+                let canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, w, h);
+                this.snapshots.push(canvas);
+                // shootStep3()
+                this.printImages()
+            },
+            printImages(outputId) {
+                var output = document.getElementById('stillframe');
+                output.innerHTML = '';
+                // console.log("---PrintImages", Camera.snapshots)
+                for (var i = 0; i < 9; i++) {
+                    let element = Camera.snapshots[i]
+                    // console.log("i", i, "element", element)
+                    if (element !== undefined) {
+                        var image = new Image();
+                        image.src = element.toDataURL();
+                        output.appendChild(image);
+                    }
+                }
+            }
+
+        };
     </script>
-    <script src="https://unpkg.com/tone"></script>
-    <script src="https://cdn.jsdelivr.net/npm/oscilloscope@1.x/dist/oscilloscope.min.js"></script>
-
     <script type="module">
+
+        window.generateChord()
+
         // ----------------------------------------------------------------------------- SYNTH STUFF
         // import * as Tone from './Tone.js'
-        import poser from "./Transposer.js"
+        // import poser from "./Transposer.js"
 
 
-        // Guitar Notes to Synth
-        // console.log("poser is ", poser)
+        // // Guitar Notes to Synth
+        // // console.log("poser is ", poser)
 
-        let data = "test";
-        let translatedNotes = []
-        window.my_positions.forEach(element => {
-            let aNote = poser.guitar2note(element)
-            translatedNotes.push(aNote)
-        });
+        // let data = "test";
+        // let translatedNotes = []
+        // window.my_positions.forEach(element => {
+        //     let aNote = poser.guitar2note(element)
+        //     translatedNotes.push(aNote)
+        // });
 
-        console.log("positions:", translatedNotes)
-        const notesDiv = document.getElementById("notes");
-        notesDiv.append(translatedNotes)
-        let synthOptions = {
-            oscillator: {
-                type: "sine",
-                volume: -10
-            }
-        }
-        let multisynth = [];
-        for (let i = 0; i < 8; i++) {
-            multisynth.push(new Tone.Synth(synthOptions).toDestination())
+        // console.log("positions:", translatedNotes)
+        // const notesDiv = document.getElementById("notes");
+        // notesDiv.append(translatedNotes)
+        // let synthOptions = {
+        //     oscillator: {
+        //         type: "sine",
+        //         volume: -10
+        //     }
+        // }
+        // let multisynth = [];
+        // for (let i = 0; i < 8; i++) {
+        //     multisynth.push(new Tone.Synth(synthOptions).toDestination())
 
-        }
+        // }
 
-        // multisynth[0].oscillator.type = "sine"
-        // console.log("main synth", multisynth[0])
+        // // multisynth[0].oscillator.type = "sine"
+        // // console.log("main synth", multisynth[0])
 
-        window.playNote = function () {
-            // create a synth
-            const synth = new Tone.Synth().toDestination();
-            const now = Tone.now()
+        // window.playNote = function () {
+        //     // create a synth
+        //     const synth = new Tone.Synth().toDestination();
+        //     const now = Tone.now()
 
-            let synthIndex = 0;
-            // play a note from that synth
-            translatedNotes.forEach(element => {
-                multisynth[synthIndex].triggerAttackRelease(element, 1, now);
-                synthIndex++;
-            });
-            for (let i = 0; i < 9; i++) {
-                setTimeout(() => {
-                    shoot()
-                }, 130 + i * 20);
-            }
-            // setTimeout(() => {
-            //     shoot()
-            // }, 130);
+        //     let synthIndex = 0;
+        //     // play a note from that synth
+        //     translatedNotes.forEach(element => {
+        //         multisynth[synthIndex].triggerAttackRelease(element, 1, now);
+        //         synthIndex++;
+        //     });
+        //     for (let i = 0; i < 9; i++) {
+        //         setTimeout(() => {
+        //             Camera.shoot()
+        //         }, 130 + i * 20);
+        //     }
+        //     var modal = document.getElementById("myBtn");
+        //     modal.style.display = "inline-block";
+        // }
 
-            // setTimeout(() => {
-            //     shoot()
-            // }, 200);
+        // --------------------------------------------------------------------- Record Oscilloscope
 
-            // setTimeout(() => {
-            //     shoot()
-            // }, 210);
-            var modal = document.getElementById("myBtn");
-            modal.style.display = "inline-block";
-        }
+        // let Camera = {
+        //     videoId: 'scope-canvas',
+        //     snapshots: [],
+        //     shoot: function () {
+        //         var video = document.getElementById(Camera.videoId);
+        //         // var canvas = shootStep2(video, Camera.scaleFactor);
 
+        //         let w = video.width
+        //         let h = video.height
+        //         let canvas = document.createElement('canvas');
+        //         canvas.width = w;
+        //         canvas.height = h;
+        //         let ctx = canvas.getContext('2d');
+        //         ctx.drawImage(video, 0, 0, w, h);
+        //         this.snapshots.push(canvas);
+        //         // shootStep3()
+        //         this.printImages()
+        //     },
+        //     printImages(outputId) {
+        //         var output = document.getElementById('stillframe');
+        //         output.innerHTML = '';
+        //         // console.log("---PrintImages", Camera.snapshots)
+        //         for (var i = 0; i < 9; i++) {
+        //             let element = Camera.snapshots[i]
+        //             // console.log("i", i, "element", element)
+        //             if (element !== undefined) {
+        //                 var image = new Image();
+        //                 image.src = element.toDataURL();
+        //                 output.appendChild(image);
+        //             }
+        //         }
+        //     }
+
+        // };
         //----------------------------------------------------------------------------- Oscilloscope
         const canvas = document.createElement('canvas')
         canvas.width = 500
@@ -250,6 +408,9 @@
         canvas.id = "scope-canvas"
         document.getElementById("scope").appendChild(canvas)
         var audioContext = new window.AudioContext()
+        var ctx = canvas.getContext('2d');
+
+        // ctx.globalCompositeOperation = 'destination-over';
 
 
         // create source from html5 audio element
@@ -269,78 +430,16 @@
             await Tone.start()
             // console.log('audio is ready')
         })
+
     </script>
+
+
     <script>
-        var videoId = 'scope-canvas';
-        var scaleFactor = 1;
-        var snapshots = [];
-
-        /**
-         * Captures a image frame from the provided video element.
-         *
-         * @param {Video} video HTML5 video element from where the image frame will be captured.
-         * @param {Number} scaleFactor Factor to scale the canvas element that will be return. This is an optional parameter.
-         *
-         * @return {Canvas}
-         */
-        function capture(video, scaleFactor) {
-            if (scaleFactor == null) {
-                scaleFactor = 1;
-            }
-
-            var w = video.width * scaleFactor;
-            var h = video.height * scaleFactor;
-            var canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
-            var ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, w, h);
-            return canvas;
-        }
-
-        /**
-         * Invokes the &lt;code&gt;capture&lt;/code&gt; function and attaches the canvas element to the DOM.
-         */
-        function shoot() {
-            var video = document.getElementById(videoId);
-            var output = document.getElementById('stillframe');
-            var img = document.getElementById('test');
-            var canvas = capture(video, scaleFactor);
-            canvas.onclick = function () {
-
-                // window.open(url);
-            };
-
-
-            // snapshots.unshift(canvas);
-            snapshots.push(canvas);
-            output.innerHTML = '';
-            // console.log("snapshots", snapshots)
-            for (var i = 0; i < 9; i++) {
-                let element = snapshots[i]
-                // console.log("i", i, "element", element)
-                if (snapshots[i] !== undefined) {
-                    var image = new Image();
-                    image.src = element.toDataURL();
-                    // img.target = image.src;
-                    image.onclick = function (target) {
-                        console.log(this.src)
-                        // window.open(target.src)
-                    }
-                    output.appendChild(image);
-                }
-                // img.src = "TESTTESTSET"
-            }
-        }
-    </script>
-    <script>
-        // Get the modal
+        // --------------------------------------------------------------------------- Display Modal
         var modal = document.getElementById("myModal");
-
-        // Get the button that opens the modal
+        // The button that opens the modal
         var btn = document.getElementById("myBtn");
-
-        // Get the <span> element that closes the modal
+        // The <span> element that closes the modal
         var span = document.getElementsByClassName("close")[0];
 
         // When the user clicks on the button, open the modal
