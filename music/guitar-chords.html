@@ -266,8 +266,11 @@
                 for (let i = 0; i < 9; i++) {
                     setTimeout(() => {
                         Camera.shoot()
+                        if (i == 8)
+                            Camera.printImages()
                     }, 130 + i * 20);
                 }
+                Camera
                 var modal = document.getElementById("myBtn");
                 modal.style.display = "inline-block";
             }
@@ -277,7 +280,7 @@
             videoId: 'scope-canvas',
             snapshots: [],
             shoot: function () {
-                var video = document.getElementById(Camera.videoId);
+                var video = document.getElementById(this.videoId);
                 // var canvas = shootStep2(video, Camera.scaleFactor);
 
                 let w = video.width
@@ -289,14 +292,14 @@
                 ctx.drawImage(video, 0, 0, w, h);
                 this.snapshots.push(canvas);
                 // shootStep3()
-                this.printImages()
+                // this.printImages()
             },
             printImages(outputId) {
                 var output = document.getElementById('stillframe');
                 output.innerHTML = '';
-                // console.log("---PrintImages", Camera.snapshots)
+                console.log("---PrintImages", Camera.snapshots)
                 for (var i = 0; i < 9; i++) {
-                    let element = Camera.snapshots[i]
+                    let element = this.snapshots[i]
                     // console.log("i", i, "element", element)
                     if (element !== undefined) {
                         var image = new Image();
@@ -304,6 +307,7 @@
                         output.appendChild(image);
                     }
                 }
+                this.snapshots = []
             }
 
         };
