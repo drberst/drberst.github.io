@@ -42,6 +42,10 @@ Building on the tab-notation project, this link will give a tab/audio/waveform f
 - Added form to select root note and Major/Minor for the chord
 - There's also now a button to regenerate the chord without having to refresh the page
 - Also have a button to view a gallery of 9 screenshots from the oscilloscope output
+#### 9-30-22:
+- Now there's a checkbox to make a Major or Minor 7th chord
+- Due to the way chords are generated, they may not contain all notes. In this case, the missing notes are now listed. A missing 3rd makes for a [Power chord](https://en.wikipedia.org/wiki/Power_chord), which has a distinctive waveform
+
 
 ## [/music/notation](https://drberst.github.io/music/notation)
 Just a nice looking example render provided in the Vexflow documentation. But in coding, in can be an achievement to get the screen to display anything at all. Hence most starting programs are just to print "Hello World". So this is my hello world for Vexflow.

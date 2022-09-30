@@ -303,7 +303,11 @@ Transposer.majorTriad = function (rootNote) {
     // console.log("triad result is", result);
     return result;
 };
-
+Transposer.getInterval = function (rootNote, interval) {
+    let index = ALLNOTES.indexOf(rootNote);
+    let result = ALLNOTES[index + interval];
+    return result;
+};
 Transposer.minorTriad = function (rootNote) {
     // console.log("triad input is", rootNote);
 
@@ -313,5 +317,28 @@ Transposer.minorTriad = function (rootNote) {
     let result = [rootNote, majorThird, majorFifth];
     // console.log("triad result is", result);
     return result;
+};
+
+Transposer.checkChordContainsNotes = function (chord, notes) {
+    console.log("input: Chord=", chord, "notes=", notes);
+    let result = { contains: [], missing: [] };
+    let simplenotes = [];
+    notes.forEach((element) => {
+        simplenotes.push(Transposer.removeOctave(element));
+    });
+    let simpleChord = chord.join("");
+    simplenotes.forEach((element) => {
+        if (simpleChord.includes(element)) {
+            // result[element] = true;
+            result.contains.push(element);
+        } else result.missing.push(element);
+    });
+    console.log("mid: simplenotes=", simplenotes, "simpleChord=", simpleChord);
+    console.log("output: result=", result);
+
+    return result;
+};
+Transposer.removeOctave = function (note) {
+    return note.slice(0, note.length - 1);
 };
 export default Transposer;

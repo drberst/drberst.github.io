@@ -90,6 +90,7 @@
     <input id="b1" type="button" value="BuildGrid" />
     <input id="b2" type="button" value="RandomHighlight" />-->
         <p> Choose a root note </p>
+
         <form id="rootNote">
             <input type="radio" id="A" name="rootNote" value="A">
             <label for="A">A</label>
@@ -106,18 +107,24 @@
             <input type="radio" id="G" name="rootNote" value="G">
             <label for="G">G</label>
         </form>
-        <p> And Major or Minor </p>
+        <hr>
         <form>
             <input type="radio" id="Major" name="radio_key" value="Major" checked="checked">
             <label for="Major">Major</label>
             <input type="radio" id="Minor" name="radio_key" value="Minor">
             <label for="Minor">Minor</label>
         </form>
+        <hr>
+        <form>
+            <input type="checkbox" id="Add7">Add 7</input>
+            <!-- <input type="checkbox" id="Add9">Add 9</input> -->
+        </form>
         <p>Press <button onclick="generateChord()">Generate</button> to generate a chord</p>
 
 
         <div id="output"></div>
         <p id="notes">The Notes in this random chord are: </p>
+        <hr>
         <p>Press <button onclick="playNote()">Play</button> to sound the chord.</p>
 
         <!-- <button id="record" onclick="RecordCompositeWaveform()">Record Composite Waveform</button> -->
@@ -154,11 +161,11 @@
         const renderer = new Renderer(div, Renderer.Backends.SVG);
 
         // Configure the rendering context.
-        renderer.resize(500, 150);
+        renderer.resize(500, 100);
         const context = renderer.getContext();
 
         // Create a tab stave of width 400 at position 10, 40 on the canvas.
-        const stave = new TabStave(10, 0, 400);
+        const stave = new TabStave(10, -40, 400);
         stave.addClef("tab").setContext(context).draw();
         // }
 
@@ -168,18 +175,7 @@
 
         window.generateChord = function () {
             const div = document.getElementById("output");
-            // const context = renderer.getContext();
 
-            // const renderer = new Renderer(div, Renderer.Backends.SVG);
-
-            // Configure the rendering context.
-            // renderer.resize(500, 150);
-            // const context = renderer.getContext();
-            // context.rect(0, 0, 500, 150, { stroke: 'none', fill: 'white' });
-            // output.innerHTML = ""
-            // const stave = new TabStave(10, 0, 400);
-            // stave.addClef("tab").setContext(context).draw();
-            // while (output.hasChildNodes()) {
             let svg = output.firstChild;
             if (svg.children.length > 1) {
                 // console.log("I'd like to remove the last child of svg=", svg.children[1])
@@ -191,29 +187,36 @@
             var my_positions = []
             let radio_rootNote = document.querySelector("input[name='rootNote']:checked")
             let radio_key = document.querySelector("input[name='radio_key']:checked")
+            let add7 = document.getElementById("Add7")
+            // let add9 = document.getElementById("Add9")
             let form = document.getElementById("rootNote");
+            let triad = [];
             // console.log("----Form is", form)
             console.log("> New Chord: Rootnote is", radio_rootNote.value)
             console.log("Key is", radio_key.value)
-            let triad = poser.majorTriad(radio_rootNote.value + "3")
-            if (radio_key.value !== "Major") {
+            console.log("Add 7 is", add7.checked)
+
+            if (radio_key.value === "Major") {
+                triad = poser.majorTriad(radio_rootNote.value + "3")
+                if (add7.checked) {
+                    triad = triad.concat(poser.getInterval(radio_rootNote.value + "3", 11))
+                }
+            } else {
                 triad = poser.minorTriad(radio_rootNote.value + "3")
+
+                if (add7.checked) {
+                    triad = triad.concat(poser.getInterval(radio_rootNote.value + "3", 10))
+                }
             }
-            // console.log("Triad is", triad)
+
+            console.log("Triad is", triad)
 
             for (let i = 0; i < triad.length; i++) {
                 const element = triad[i];
                 let allOctaves = poser.note2guitar_allOctaves(element)
                 my_positions = my_positions.concat(allOctaves)
             }
-            // poser.ALLNOTES;
-            // my_positions = poser.note2guitar("A4")
-            // my_positions = poser.note2guitar_allOctaves("C3")
-            // my_positions = my_positions.concat(poser.note2guitar_allOctaves("E"))
-            // my_positions = my_positions.concat(poser.note2guitar_allOctaves("G"))
-            // let my_positions2 = poser.note2guitar("C4")
-            // my_positions = my_positions.concat(my_positions2)
-            // my_positions = my_positions.concat(poser.note2guitar("E4"))
+
             my_positions = poser.fixChord(my_positions)
             window.my_positions = my_positions
             console.log("window.my_positions is:", window.my_positions)
@@ -241,6 +244,16 @@
             const notesDiv = document.getElementById("notes");
             notesDiv.innerHTML = "The Notes in this random chord are: "
             notesDiv.append(translatedNotes)
+
+            let checkedNotes = poser.checkChordContainsNotes(translatedNotes, triad)
+            if (checkedNotes.missing.length === 0) {
+                // notesDiv.innerHTML += "<p>this is a complete chord</p>"
+            } else {
+                notesDiv.innerHTML += `<p>This is a partial chord (missing: ${checkedNotes.missing.join()})`
+                // notesDiv.innerHTML +=
+                notesDiv.innerHTML += "</p> "
+
+            }
             window.playNote = function () {
                 // create a synth
                 let synthOptions = {
@@ -268,7 +281,7 @@
                         Camera.shoot()
                         if (i == 8)
                             Camera.printImages()
-                    }, 130 + i * 20);
+                    }, 130 + i * 50);
                 }
                 Camera
                 var modal = document.getElementById("myBtn");
@@ -297,7 +310,7 @@
             printImages(outputId) {
                 var output = document.getElementById('stillframe');
                 output.innerHTML = '';
-                console.log("---PrintImages", Camera.snapshots)
+                // console.log("---PrintImages", Camera.snapshots)
                 for (var i = 0; i < 9; i++) {
                     let element = this.snapshots[i]
                     // console.log("i", i, "element", element)
