@@ -254,7 +254,15 @@
                 notesDiv.innerHTML += "</p> "
 
             }
+            // -------------------------------------------------------------------------- PlayNote()
+
             window.playNote = function () {
+                if (window.playingNote) {
+                    return;
+                }
+                window.playingNote = true;
+                // console.log("playingNote=", playingNote)
+
                 // create a synth
                 let synthOptions = {
                     oscillator: {
@@ -283,9 +291,14 @@
                             Camera.printImages()
                     }, 130 + i * 50);
                 }
-                Camera
+
                 var modal = document.getElementById("myBtn");
                 modal.style.display = "inline-block";
+
+                setTimeout(() => {
+                    // console.log("playingNote=", playingNote)
+                    window.playingNote = false;
+                }, 1000);
             }
         }
 
