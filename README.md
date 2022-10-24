@@ -1,7 +1,7 @@
 # The Web Projects of Dylan R. Berst
 Been working on web development skills lately, and the nice thing about web development is that I can share these coding projects online without people having to download or install anything. Most work on mobile too, but I haven't tested very much. Most are unfinished, but work well enough to take a look at.
 
-# October 2022 
+# October 2022
 ## [/mtg/daily.jpg](https://drberst.github.io/mtg/daily.jpg)
 I have an E-Ink picture frame that can display a jpg. So I needed an endpoint that was a raw 600x448 pixel jpg.
 
@@ -10,6 +10,7 @@ I have an E-Ink picture frame that can display a jpg. So I needed an endpoint th
 
 #### 10-20-22:
 - I now have the [python script](https://github.com/drberst/drberst.github.io/blob/main/mtg/daily.py) running daily, so every day (at midnight EST) there should be a new image at https://drberst.github.io/mtg/daily.jpg
+- Having some issues with authentication. Got past one issue by adding a keychain (from https://github.com/microsoft/vscode/issues/92972#issuecomment-625751232). But still doesn't seem to be pushing
 
 # September 2022
 ## [/music/guitar-chords](https://drberst.github.io/music/guitar-chords)
