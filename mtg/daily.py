@@ -89,6 +89,7 @@ def gitPush():
             git_config.set_value('user', 'name', 'Dylan Robot Berst')
         origin = repo.remote(name='origin')
         origin.push()
+        print('Successfully pushed to remote!')
     except Exception as e:
         print('Some error occured while pushing the code')
         print(e)
