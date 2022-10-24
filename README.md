@@ -10,8 +10,8 @@ I have an E-Ink picture frame that can display a jpg. So I needed an endpoint th
 
 #### 10-20-22:
 - I now have the [python script](https://github.com/drberst/drberst.github.io/blob/main/mtg/daily.py) running daily, so every day (at midnight EST) there should be a new image at https://drberst.github.io/mtg/daily.jpg
-- Having some issues with authentication. Got past one issue by adding a keychain (from https://github.com/microsoft/vscode/issues/92972#issuecomment-625751232). But still doesn't seem to be pushing
-
+- It's a couple days later, and the image hasn't been updated as expected. I'm looking into it, but it appears to be an issue with authentication via the command line / python script
+- Got past one issue by adding a keychain (from https://github.com/microsoft/vscode/issues/92972#issuecomment-625751232). Seems like it's committing local changes, but still not pushing to remote
 # September 2022
 ## [/music/guitar-chords](https://drberst.github.io/music/guitar-chords)
 Building on the tab-notation project, this link will give a tab/audio/waveform for a random C Major chord.
