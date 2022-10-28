@@ -100,8 +100,8 @@ def updateAndPushDailyImage():
     gitPush()
 
 
-updateDailyImage()
-gitPush()
+#updateDailyImage()
+#gitPush()
 # schedule.every(10).seconds.do(updateDailyImage)
 schedule.every().day.at("00:00").do(updateAndPushDailyImage)
 count = 0
