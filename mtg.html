@@ -28,6 +28,17 @@
 
             }
 
+            #targetArtist {
+                font-size: 1.5em;
+                text-align: center;
+                display: block;
+                font-weight: bold;
+                font-family: myFont;
+                width: 60%;
+                margin: 1% auto;
+
+            }
+
             #wrapper {
                 /* width: 50%; */
                 display: block;
@@ -60,6 +71,8 @@
         <div class="wrapper">
             <div id="target">Loading Card...</div>
             <img id="targetImg" src="" />
+            <div id="targetArtist"></div>
+
         </div>
 
     </body>
@@ -69,6 +82,7 @@
     </script>
     <script type="module">
         let targetDiv = document.getElementById("target");
+        let targetDivArtist = document.getElementById("targetArtist");
         let targetImg = document.getElementById("targetImg");
         window.onload = (event) => {
             fetch('https://api.scryfall.com/cards/random')
@@ -76,6 +90,7 @@
                 .then((data) => {
                     console.log(data)
                     targetImg.src = data.image_uris.art_crop
+                    targetDivArtist.textContent = data.artist
                     if (data.flavor_text === undefined)
                         targetDiv.innerHTML = data.name
                     else
