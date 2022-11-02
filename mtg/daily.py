@@ -9,7 +9,7 @@ from random import randrange
 import os
 import schedule
 import time
-
+import datetime
 
 def get_random_line(filepath: str) -> str:
     file_size = os.path.getsize(filepath)
@@ -28,6 +28,7 @@ def get_random_line(filepath: str) -> str:
 
 # Relies on a json file that is too big to upload to Github
 def updateDailyImage():
+    print(f"Updating image: {datetime.datetime.now()}")
     data = get_random_line("unique-artwork.json")
     data = data[:-2]
     d = json.loads(data)
@@ -104,9 +105,7 @@ def updateAndPushDailyImage():
 #gitPush()
 # schedule.every(10).seconds.do(updateDailyImage)
 schedule.every().day.at("00:00").do(updateAndPushDailyImage)
-count = 0
+
 while True:
-    print(f"iteration: {count}")
-    count = count+1
     schedule.run_pending()
-    time.sleep(3600*4)
+    time.sleep(3600*4) #4 hours
