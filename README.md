@@ -1,10 +1,14 @@
 # The Web Projects of Dylan R. Berst
-Been working on web development skills lately, and the nice thing about web development is that I can share these coding projects online without people having to download or install anything. Most work on mobile too, but I haven't tested very much. Most are unfinished, but work well enough to take a look at.
+Been working on web development skills lately, and the nice thing about web development is that I can share these coding projects online without people having to download or install anything. Most work on mobile too, but I haven't tested very much. Most could be improved on, but work well enough to take a look at.
 
 # October 2022
+## [/mtg](https://drberst.github.io/mtg)
+Fetches a random MTG image using https://api.scryfall.com
+- Also gets the flavor text of the card
+- If it has no flavor text, then it gets the card name
+
 ## [/mtg/daily.jpg](https://drberst.github.io/mtg/daily.jpg)
 I have an E-Ink picture frame that can display a jpg. So I needed an endpoint that was a raw 600x448 pixel jpg.
-
 - Works similar to the code fetching above, but also has a python script to save the image to a file and then push that file to this website. Also adds text in an old MtG font. (see [/mtg/idk.py](https://github.com/drberst/drberst.github.io/blob/main/mtg/idk.py))
 - The image is called daily, but I didn't get that far. But all I would need to do is write code to run the python script when my computer starts, or run it every 24 hours on a raspberry pi server if I set one of those up in the future.
 
@@ -12,6 +16,7 @@ I have an E-Ink picture frame that can display a jpg. So I needed an endpoint th
 - I now have the [python script](https://github.com/drberst/drberst.github.io/blob/main/mtg/daily.py) running daily, so every day (at midnight EST) there should be a new image at https://drberst.github.io/mtg/daily.jpg
 - It's a couple days later, and the image hasn't been updated as expected. I'm looking into it, but it appears to be an issue with authentication via the command line / python script
 - Got past one issue by adding a keychain (from https://github.com/microsoft/vscode/issues/92972#issuecomment-625751232). Seems like it's committing local changes, but still not pushing to remote
+
 # September 2022
 ## [/music/guitar-chords](https://drberst.github.io/music/guitar-chords)
 Building on the tab-notation project, this link will give a tab/audio/waveform for a random C Major chord.
@@ -42,10 +47,6 @@ Just a nice looking example render provided in the Vexflow documentation. But in
 I'd like to build a robot that hangs from the corners of a white board and can draw stuff on it. This is a simple physics simulation of how two motors could let the hanging bot reach anywhere on the board.
 
 # Older
-## [/mtg](https://drberst.github.io/mtg)
-Fetches a random MTG image using https://api.scryfall.com
-- Also gets the flavor text of the card
-- If it has no flavor text, then it gets the card name
 
 ## [/audio](https://drberst.github.io/audio)
 An older project that creates several diagrams from the audio of an mp3.
