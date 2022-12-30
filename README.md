@@ -1,6 +1,19 @@
 # The Web Projects of Dylan R. Berst
 Been working on web development skills lately, and the nice thing about web development is that I can share these coding projects online without people having to download or install anything. Most work on mobile too, but I haven't tested very much. Most could be improved on, but work well enough to take a look at.
 
+# November 2022
+## [Lightning](https://drberst.github.io/11-16-lightning/main)
+Generates a field of random values (noise), then starts a lightning stream from the top of the screen. Each frame the lightning extends down one pixel and looks below to find the brightest field value. Based on that, the bolt continues left, right, center, or splits into two bolts. Anywhere the lightning goes it charges the background field, making future bolts more likely to follow the same path, which is somewhat like what real lightning does in nature. Originally I rendered the bolts directly, but I tried a different look where the bolts are invisable and you just see the charged trails they leave behind. I'm pleased with how it turned out. 
+- In the future, I'd like to make some of the options adjustable with sliders or other inputs. 
+- I'd also like to to simulate other weather phenomenon like rain or snow or intense wind. 
+
+## [Healbot](https://drberst.github.io/11-20-Healbot/main)
+In World of Warcraft there are 5 man dungeons where a tank, healer, and 3 damage dealers go in and fight various monsters and bosses. Healbot is an addon that makes the healer role easier. This page I made is a simplified version of Healbot turned into its own little game. The goal is simply to deplete the enemy health bar before all of your team is drained. 
+- Right now you just click to heal a player, but I imagine implementing different healing spells in the future, like healing over time or healing multiple characters with one spell, or cooldown spells that have to recharge but have a more intense effect. 
+- I'd also like to add multiple enemies, with different damage patterns
+- Another future addition might be to give buttons next to the Damage dealer healthbars that would let you deplete the enemies health faster
+- It also might be fun to take the healing abilities from D&D or Pathfinder and apply them to this World of Warcraft dungeon healing gameplay
+
 # October 2022
 ## [/mtg](https://drberst.github.io/mtg)
 Fetches a random MTG image using https://api.scryfall.com

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Healbot</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+    <style>
+        /* * {
+            box-sizing: border-box;
+        } */
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1,
+        h2 {
+            color: #fff;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 6rem;
+        }
+
+        h2 {
+            font-size: 1rem;
+        }
+
+        label {
+            color: #fff;
+            display: inline
+        }
+
+        progress {
+            /* margin-top: -20px; */
+            /* height: 100px; */
+            /* display: inline; */
+            /* appearance: none; */
+            background-color: blue;
+            /* color: red; */
+            /* border-radius: 5px; */
+            /* box-shadow: 0 2px 15px rgba(0, 0, 0, 0.9) inset; */
+            /* accent-color: rgb(104, 238, 104); */
+        }
+
+
+
+        progress::-webkit-progress-value {
+            background: blue;
+        }
+
+        .gg {
+            height: 200px;
+        }
+
+        .progress25::-webkit-progress-value {
+            background: red;
+
+        }
+
+        progress::-webkit-progress-bar {
+            background-color: #000;
+            /* width: 100%; */
+        }
+    </style>
+</head>
+
+<body>
+    <label for="Healer">Healer</label>
+    <progress class=gg" id="Healer" value="32" max="100"> 32% </progress>
+    <label for="Tank">Tank</label>
+    <progress id="Tank" value="32" max="100"> 32% </progress>
+    <label for="DPS1">DPS1</label>
+    <progress id="DPS1" value="32" max="100"> 32% </progress>
+    <label for="DPS2">DPS2</label>
+    <progress id="DPS2" value="32" max="100"> 32% </progress>
+    <label for="DPS3">DPS3</label>
+    <progress id="DPS3" value="32" max="100"> 32% </progress>
+
+
+
+    <script src="main.js" async defer></script>
+</body>
+
+</html>
