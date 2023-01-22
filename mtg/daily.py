@@ -28,11 +28,21 @@ def get_random_line(filepath: str) -> str:
 
 # Relies on a json file that is too big to upload to Github
 def updateDailyImage():
-    print(f"Updating image: {datetime.datetime.now()}")
+    print(f"\nUpdating image: {datetime.datetime.now()}")
     data = get_random_line("unique-artwork.json")
     data = data[:-2]
     d = json.loads(data)
-    pic_url = d['image_uris']['art_crop']
+
+
+
+    try:
+        pic_url = d['image_uris']['art_crop']
+    except KeyError:
+        print("KeyError, trying a new image")
+        return updateDailyImage()
+    except:
+        print(f"Unhandled Error: data={data}")
+
     name = d['name']
 
     with open('daily.jpg', 'wb') as handle:
