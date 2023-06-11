@@ -16,6 +16,61 @@
 //     canvas.style.height = 0.9 * window.innerHeight + "px";
 // }
 
+window.fillArray = fillArray;
+
+let OPTIONS = {
+    branchChance: 0.01,
+    repeats: 2,
+    bgMax: 0.1,
+    size: 100,
+    maxBolts: 10,
+    hue: 220,
+    saturation: 60,
+    boltColor: 220,
+    boltOpacity: 1,
+    ms: 1,
+};
+let Main = {
+    size: OPTIONS.size,
+    array: [],
+    small_canvas: document.getElementById("small_canvas"),
+    ctx: small_canvas.getContext("2d"),
+    bolts: [],
+    loops: 0,
+    intervalID: "",
+    updates: [],
+};
+(function loop() {
+    console.time();
+    // noise(ctx);
+    // printGrid(ctx);
+    // let size = 64;
+    console.timeStamp()
+    Main.array = fillArray(Main.size, Main.size);
+    console.timeLog()
+    // printFromArray(array, size, size, ctx.canvas.width / size, ctx.canvas.height / size);
+    printFromArray(Main.array, Main.size, Main.size);
+
+    console.log("DONE printFromArray()")
+    console.timeLog()
+    let bolt = newBolt({ x: Math.floor(Main.size / 2) });
+    printBolt(bolt);
+    Main.bolts.push(bolt);
+    // Main.bolts.push(newBolt({ x: Math.floor(Main.size / 4) }));
+    // ctx.fillStyle = `hsla(255, 0%, ${1.0 * 100}%,50%)`;
+    // walker2();
+    // interateBolts();
+    Main.intervalID = setInterval(interateBolts, OPTIONS.ms);
+    const myPromise = new Promise((resolve, reject) => {
+        Main.resolve = resolve;
+        requestAnimationFrame(interateBolts);
+    });
+    myPromise.then(() => {
+        console.log("done!! Main=", Main);
+        console.timeEnd()
+
+    });
+})();
 /**
  * Ideas for things to add
  * - Less pixelated?
@@ -80,6 +135,7 @@ function printUpdatesFromArray() {
     Main.updates = [];
 }
 function printFromArray(array, w, h) {
+    console.log("Array Debug")
     const small_canvas = document.getElementById("small_canvas");
     resizeCanvas(small_canvas, w, h);
     const ctx2 = small_canvas.getContext("2d");
@@ -91,6 +147,7 @@ function printFromArray(array, w, h) {
             ctx2.fillStyle = `hsl(${OPTIONS.hue}, ${OPTIONS.saturation}%, ${element * 100}%)`;
             // ctx.fillStyle = `white`;
             // ctx2.imageSmoothingEnabled = false;
+
             ctx2.fillRect(x, y, 1, 1);
         }
     }
@@ -200,51 +257,3 @@ function interateBolts() {
     // printFromArray(Main.array, Main.size, Main.size);
     printUpdatesFromArray();
 }
-
-window.fillArray = fillArray;
-
-let OPTIONS = {
-    branchChance: 0.01,
-    repeats: 2,
-    bgMax: 0.1,
-    size: 300,
-    maxBolts: 10,
-    hue: 220,
-    saturation: 60,
-    boltColor: 220,
-    boltOpacity: 1,
-    ms: 1,
-};
-let Main = {
-    size: OPTIONS.size,
-    array: [],
-    small_canvas: document.getElementById("small_canvas"),
-    ctx: small_canvas.getContext("2d"),
-    bolts: [],
-    loops: 0,
-    intervalID: "",
-    updates: [],
-};
-(function loop() {
-    // noise(ctx);
-    // printGrid(ctx);
-    // let size = 64;
-    Main.array = fillArray(Main.size, Main.size);
-    // printFromArray(array, size, size, ctx.canvas.width / size, ctx.canvas.height / size);
-    printFromArray(Main.array, Main.size, Main.size);
-    let bolt = newBolt({ x: Math.floor(Main.size / 2) });
-    printBolt(bolt);
-    Main.bolts.push(bolt);
-    // Main.bolts.push(newBolt({ x: Math.floor(Main.size / 4) }));
-    // ctx.fillStyle = `hsla(255, 0%, ${1.0 * 100}%,50%)`;
-    // walker2();
-    // interateBolts();
-    Main.intervalID = setInterval(interateBolts, OPTIONS.ms);
-    const myPromise = new Promise((resolve, reject) => {
-        Main.resolve = resolve;
-        requestAnimationFrame(interateBolts);
-    });
-    myPromise.then(() => {
-        console.log("done!! Main=", Main);
-    });
-})();
