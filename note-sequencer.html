@@ -134,7 +134,7 @@ I have 3 arrays:
                     setTimeout(() => {
                         // updateBackgroundColor(note);
                         const color = noteToHsl(note)
-                        // document.body.style.backgroundColor = color;
+                        document.body.style.backgroundColor = color;
                         output.innerHTML += `<div style="background-color:${color}">${note}</div>`
                         console.log("T:", audioContext.currentTime, "note is", note)
 
