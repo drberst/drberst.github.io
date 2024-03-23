@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Moiré Patterns</title>
+        <style>
+            #canvas {
+                border: 1px solid black;
+                width: 400px;
+                image-rendering: pixelated;
+                /* filter: blur(2px); */
+                /* filter: contrast(1.2) */
+            }
+
+            .blur {
+                filter: blur(1px);
+            }
+
+            .blur10x {
+                filter: blur(10px);
+            }
+
+            #label-f1,
+            #label-f2 {
+                margin: 0px 2px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <button onclick="start()">Start</button>
+        <button onclick="stop()">Stop</button>
+        <button onclick="reset()">Restart</button>
+        <div>
+            Frequency A: <span id="label-f1">0</span>
+            <br>
+            <input type="range" id="frequencySlider1" min="0" max="1000" value="0">
+            <br>
+            Frequency B: <span id="label-f2">100</span>
+            <br>
+            <input type="range" id="frequencySlider2" min="0" max="200" value="100">
+
+            <br>
+            Color: <input type="checkbox" id="check-color">
+            <br>
+            Blur:<input type="checkbox" id="check-blur">
+            Blur x10:<input type="checkbox" id="check-blur10x">
+            <br>
+        </div>
+
+        <canvas id="canvas" width="100" height="100"></canvas>
+        <br>
+        wikipedia: <a href="https://en.wikipedia.org/wiki/Moir%C3%A9_pattern">Moiré Patterns</a>
+
+        <script>
+            // Variables
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            let frequency1 = 0; // Initial frequency of first wave
+            let amplitude1 = 100; // Initial amplitude of first wave
+            let frequency2 = 100; // Initial frequency of second wave
+            let amplitude2 = 100; // Initial amplitude of second wave
+            let isCheckedColor = false;
+            let isCheckedBlur = false;
+            let isCheckedBlur10x = false;
+            // Function to calculate displacement for interference of two waves
+            function calculateDisplacement(x, y) {
+                const displacement1 = Math.sin((x / width) * frequency1) * Math.sin((y / height) * frequency1);
+                const displacement2 = Math.sin((x / width) * frequency2) * Math.sin((y / height) * frequency2);
+                return amplitude1 * displacement1 + amplitude2 * displacement2;
+            }
+
+            // Function to draw interference pattern of two waves
+            function drawInterference() {
+                ctx.clearRect(0, 0, width, height);
+
+                // Loop through each point in the canvas
+                for (let x = 0; x < width; x++) {
+                    for (let y = 0; y < height; y++) {
+                        // Calculate displacement for interference
+                        const displacement = calculateDisplacement(x, y);
+
+                        // Map displacement to a grayscale color
+                        const color = Math.floor((displacement + 1) * 128);
+
+                        // Set pixel color
+                        if (isCheckedColor)
+                            ctx.fillStyle = `hsl(${displacement},50%,50%)`;
+                        else
+                            ctx.fillStyle = `rgb(${color},${color},${color})`;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+
+
+            }
+
+            // Function to update frequency and amplitude values
+            function updateValues() {
+                frequency1 = document.getElementById('frequencySlider1').value;
+                document.getElementById('label-f1').innerHTML = frequency1
+
+                // amplitude1 = document.getElementById('amplitudeSlider1').value;
+                frequency2 = document.getElementById('frequencySlider2').value;
+                document.getElementById('label-f2').innerHTML = frequency2
+                // amplitude2 = document.getElementById('amplitudeSlider2').value;
+
+                isCheckedColor = document.getElementById('check-color').checked;
+
+                isCheckedBlur = document.getElementById('check-blur').checked;
+
+                if (isCheckedBlur)
+                    canvas.classList.add("blur")
+                else
+                    canvas.classList.remove("blur")
+
+
+                isCheckedBlur10x = document.getElementById('check-blur10x').checked;
+                if (isCheckedBlur10x)
+                    canvas.classList.add("blur10x")
+                else
+                    canvas.classList.remove("blur10x")
+
+                // console.log(isCheckedColor, isCheckedBlur);
+                requestAnimationFrame(drawInterference)
+                // drawInterference();
+            }
+
+            // Add event listeners to sliders
+            document.getElementById('frequencySlider1').addEventListener('input', updateValues);
+            document.getElementById('frequencySlider2').addEventListener('input', updateValues);
+            document.getElementById('check-color').addEventListener('input', updateValues);
+            document.getElementById('check-blur').addEventListener('input', updateValues);
+            document.getElementById('check-blur10x').addEventListener('input', updateValues);
+
+            // Initial drawing
+            drawInterference();
+            let interval = 0;
+            function start() {
+                clearInterval(interval);
+
+                interval = setInterval(() => {
+                    document.getElementById('frequencySlider1').value++;
+                    requestAnimationFrame(updateValues)
+                }, 100);
+            }
+            function stop() {
+                clearInterval(interval);
+            }
+            function reset() {
+                document.getElementById('frequencySlider1').value = 0;
+                requestAnimationFrame(updateValues)
+                // start()
+            }
+        </script>
+    </body>
+
+</html>
