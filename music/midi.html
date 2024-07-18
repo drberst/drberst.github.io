@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web MIDI test page</title>
+    <style>
+      #content-body-wrapper {
+        display: table;
+        width: 100%;
+      }
+
+      #content-body {
+        display: table-row;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin-bottom: -1%;
+      }
+
+      #primary,
+      #secondary,
+      #tertiary {
+        display: table-cell;
+        width: 33.33%;
+      }
+
+      #footer {
+        height: 100px;
+        /* padding-top: 40px; */
+      }
+
+      body {
+        color: #333;
+        font-family: Helvetica Neue, Helvetica, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
+
+      #incoming,
+      #notes {
+        overflow: auto;
+        height: 300px;
+        filter: drop-shadow(0 0 1px #000);
+        /* font-family: 'Arial', sans-serif; */
+        font-family: monospace;
+        background-color: #f0f0f0;
+        text-align: left;
+      }
+
+      #stop {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="header">
+      <h1>Web MIDI test page</h1>
+      Press keys on an attached MIDI device, or choose a .mid file
+      <br>
+      <input type="file" id="audioFile" accept="audio/*">
+      <br>
+      <button id="stop" onclick="stop()">Stop</button>
+      <br>
+    </div>
+
+    <div id="content-body-wrapper">
+      <div id="content-body">
+        <div id="primary">
+          <h3>Raw Messages</h2>
+            <pre id="incoming"></pre>
+        </div>
+        <div id="secondary">
+          <h3>Translated Messages</h2>
+            <pre id="notes"></pre>
+        </div>
+        <!-- <div id="tertiary">
+          <h2>Send a message</h2>
+        </div> -->
+      </div>
+    </div>
+
+    <div id="footer">
+      <!-- <a href="https://www.onlinemusictools.com/webmiditest/">credit</a> -->
+      <!-- <button onclick="send([144, 69, 100])">Send Note To Keyboard</button> -->
+
+      <pre id="err">error?</pre>
+
+      <pre id="device"></pre>
+
+
+    </div>
+
+    <script>
+      //----------------------------------------------------------------------- get MIDI devices
+      function $(what) {
+        return document.getElementById(what);
+      }
+      var O;
+      var I;
+      var err = $("err")
+      if (!('requestMIDIAccess' in navigator)) {
+        $('content-body-wrapper').innerHTML = '<h3>try another browser, this one is not there yet</h3>';
+      } else {
+        navigator.requestMIDIAccess().then(midi => {
+          refresh(midi);
+          midi.onstatechange = e => refresh(e.target);
+        });
+      }
+      //----------------------------------------------------------------------- refresh is the event responder
+
+      function refresh(midi) {
+
+        I = midi.inputs.size
+          ? midi.inputs.values().next().value
+          : void (0);
+        O = midi.outputs.size
+          ? midi.outputs.values().next().value
+          : void (0);
+
+        console.log(O);
+        console.log(I);
+        $('device').innerHTML = [
+          'Output: ' + (O ? O.name : 'none'),
+          '<br>Input: ' + (I ? I.name : 'none'),
+        ].join('');
+
+        if (I) {
+          // I.onmidimessage = msg => {
+          //   const color = getColor();
+          //   $('incoming').innerHTML += `<div style="color: ${color}">${msg.data}</div>`;
+          //   $('incoming').scrollTop = $('incoming').scrollHeight;
+          //   $('footer').style.backgroundColor = color;
+          // };
+
+          I.onmidimessage = inputResolver
+        }
+
+        if (O) {
+
+          err.innerHTML = '';
+        }
+      }
+      //----------------------------------------------------------------------- main trigger on MIDI message
+      let prevTime = 0;
+      function inputResolver(msg) {
+        let color = getColorForNote(msg.data[1]);
+        // color = getColor();
+        let timestamp = msg.timeStamp / 1000
+        if (prevTime != 0) {
+          let ratio = timestamp / prevTime
+          console.log("ratio is:", ratio)
+          if (ratio > 1.005) {
+            $('incoming').innerHTML += "<hr>"
+            $('notes').innerHTML += "<hr>"
+          }
+        }
+
+        $('incoming').innerHTML += `<div style="color: ${color}">@${timestamp.toFixed(2)}s: [${msg.data}]</div>`;
+        $('incoming').scrollTop = $('incoming').scrollHeight;
+
+
+
+        const noteHz = midiToFrequency(msg.data[1]).toFixed(0)
+        const noteName = midiToNoteName(msg.data[1]);
+        if (msg.data[0] === 144) {
+          let text = `<div style="color: ${color}">@${timestamp.toFixed(2)}s NoteOn=${noteName} (${noteHz}hz)</div>`;
+          $('notes').innerHTML += text;
+        }
+        if (msg.data[0] === 128) {
+          $('notes').innerHTML += `<div style="color: ${color}">@${timestamp.toFixed(2)}s NoteOff=${noteName} (${noteHz}hz)</div>`;
+        }
+
+        $('notes').scrollTop = $('notes').scrollHeight;
+
+        $('header').style.backgroundColor = color;
+        // document.body.style.color = color;
+        // console.log(msg)
+        prevTime = timestamp
+        return;
+      }
+      //----------------------------------------------------------------------- colors for notes
+
+      function getColor() {
+        return '#' + Math.floor(Math.random() * 16777215).toString(16);
+      }
+
+      function getColorForNote(midiNote) {
+        const max = 96;
+        const min = 36;
+        // ideally... I want color based on note name (a,b,c) and octave
+        // notes of same name should have same color, but higher octaves should be... darker?
+        const allColors = 360
+        // let name = midiToNoteNameObject(midiNote)
+        let value = (midiNote / 12) * 10
+        let hue = (midiNote % 12) * (360 / 12)
+        let result = `hsl(${hue},100%,${value}%)`
+        console.log(midiNote, value, hue, result);
+        return result
+      }
+      function colorForEachNote() {
+        let max = 127; // I think that's the max for MIDI messages
+        let list = []
+        for (let i = 0; i < 127; i++) {
+          const element = getColor();
+          list.push(element)
+        }
+        return list
+        console.log(list)
+      }
+      function send(msg) {
+        // err.innerHTML = '';
+        console.log("got a msg:", msg)
+        if (!O) {
+          err.innerHTML = 'No connected devices to send a message to';
+          return;
+        }
+        O.send(JSON.parse("[144, 69, 100]"));
+
+        O.send(msg);
+      }
+
+      const midiToFrequency = (midiNote) => {
+        //69=A4, starting from there we can move up or down by semitones
+        return 440 * Math.pow(2, (midiNote - 69) / 12);
+      };
+      const midiToNoteName = (midiNote) => {
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const octave = Math.floor(midiNote / 12) - 1;
+        const noteName = noteNames[midiNote % 12];
+        return `${noteName}${octave}`;
+      };
+      const midiToNoteNameObject = (midiNote) => {
+        const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const octave = Math.floor(midiNote / 12) - 1;
+        const noteName = noteNames[midiNote % 12];
+        return { name: noteName, octave: octave };
+      };
+
+      const midiNoteToFrequencyAndName = (() => {
+        // Helper function to calculate frequency
+
+
+        // Helper function to get note name
+
+
+        // Create the array
+        const midiArray = [];
+        for (let i = 0; i < 128; i++) {
+          midiArray.push({
+            midiNote: i,
+            frequency: midiToFrequency(i),
+            noteName: midiToNoteName(i)
+          });
+        }
+
+        return midiArray;
+      })();
+
+      console.log(midiNoteToFrequencyAndName);
+      // send("[144, 50, 100]");
+      // send("[144, 50, 100]");
+      // send("[144, 50, 100]");
+
+      let isPlaying = false;
+      function stop() {
+        isPlaying = false;
+        let id = window.setTimeout(function () { }, 0);
+        while (id--) {
+          window.clearTimeout(id); // will do nothing if no timeout with id is present
+        }
+      }
+    </script>
+    <script src="https://unpkg.com/@tonejs/midi"></script>
+
+    <script type="module">
+      //----------------------------------------------------------------------- load .mid file
+
+      // load a midi file in the browser
+      const queryString = window.location.search;
+      console.log(queryString);
+      const myArray = queryString.split("=");
+      let word = myArray[1];
+      // console.log(word);
+
+      let midi_url = myArray[1];
+      console.log("midi_url:", midi_url);
+
+      if (!midi_url)
+        midi_url = "Over_the_Garden_Wall.mid"
+
+
+      const fileInput = document.getElementById('audioFile');
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        parseFile(file)
+        $("stop").style.display = "inline-block"
+      });
+      function parseFile(file) {
+        //read the file
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const midi = new Midi(e.target.result);
+
+          // $("err").innerHTML = "oops"
+          playMidiFile(midi)
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      // let midi = await Midi.fromUrl(midi_url)
+
+      // playMidiFile(midi.name)
+
+      function playMidiFile(midi) {
+
+        // const name = midi.name
+        let tones = []
+        let timings = []
+        let notesAndTimings = []
+        //get the tracks
+        let startTime = performance.now();
+        let colorForNotes = colorForEachNote()
+        let colorForNotesIndex = 0
+        //----------------------------------------------------------------------- queue all the notes to be played
+        stop();
+        isPlaying = true;
+        midi.tracks.forEach(track => {
+
+          //tracks have notes and controlChanges
+
+          //notes are an array
+          const notes = track.notes
+          notes.forEach(note => {
+            //note.midi, note.time, note.duration, note.name
+            // console.log()
+            // let noteName = Transposer.midi2note(note.midi + 4)
+            // tones.push(Transposer.midi2note(note.midi))
+            timings.push(note.time * 1000)
+            let msg = {
+              data: [144, note.midi, 100], // note on at volume 100
+              timeStamp: note.time * 1000
+            }
+
+            setTimeout(() => {
+              if (isPlaying) {
+
+
+                inputResolver(msg)
+                // let color = getColor();
+                // color = colorForNotes[note.midi]
+                // $('footer').style.backgroundColor = color;
+                // // color = "black"
+                // $('incoming').innerHTML += `<div style="color: ${color}">${msg.data}</div>`;
+                // $('incoming').scrollTop = $('incoming').scrollHeight;
+                O.send([144, note.midi, 100], startTime + note.time * 1000);          // multisynth[synthIndex].triggerAttackRelease(noteName, note.duration, now + note.time);
+                O.send([128, note.midi, 100], startTime + note.time * 1000 + note.duration * 1000);
+              }
+            }, 1000 * note.time);
+
+            notesAndTimings.push({
+              note: note.name,
+              timing: note.time,
+              duration: note.durationTicks
+            })
+            // console.log(note)
+          })
+
+          //the control changes are an object
+          //the keys are the CC number
+          // track.controlChanges[64]
+          //they are also aliased to the CC number's common name (if it has one)
+          // track.controlChanges.sustain.forEach(cc => {
+          //// cc.ticks, cc.value, cc.time
+          // })
+
+          //the track also has a channel and instrument
+          //track.instrument.name
+          // synthIndex++;
+        })
+
+
+        console.log(tones);
+
+        console.log("Timings:", timings);
+      }
+      //the file name decoded from the first track
+
+      // let startTime = performance.now();
+      // O.send([144, 60, 100], startTime);          // multisynth[synthIndex].triggerAttackRelease(noteName, note.duration, now + note.time);
+      // O.send([128, 60, 100], startTime + 1000);          // multisynth[synthIndex].triggerAttackRelease(noteName, note.duration, now + note.time);
+
+    </script>
+
+  </body>
+
+</html>
