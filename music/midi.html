@@ -49,7 +49,7 @@
         filter: drop-shadow(0 0 1px #000);
         /* font-family: 'Arial', sans-serif; */
         font-family: monospace;
-        background-color: #f0f0f0;
+        background-color: #d1d1d1;
         text-align: left;
       }
 
@@ -155,8 +155,11 @@
         let timestamp = msg.timeStamp / 1000
         if (prevTime != 0) {
           let ratio = timestamp / prevTime
+          let elapsed = timestamp - prevTime
           console.log("ratio is:", ratio)
-          if (ratio > 1.005) {
+          console.log("elapsed is:", elapsed)
+          // if (ratio > 1.005) {
+          if (elapsed > .25) {
             $('incoming').innerHTML += "<hr>"
             $('notes').innerHTML += "<hr>"
           }
