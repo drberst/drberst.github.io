@@ -9,14 +9,9 @@ const HEIGHT = canvas.height;
 const DEBUG_AREA_HEIGHT = 100; // Height of the debug area
 const MAIN_VISUALIZATION_START_Y = DEBUG_AREA_HEIGHT; // Y start position for main visualization
 
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const analyser = audioContext.createAnalyser();
-analyser.fftSize = 256 * 2;
-analyser.smoothingTimeConstant = 0.8; // Lower value for more responsiveness
-const bufferLength = analyser.frequencyBinCount;
-const dataArray = new Uint8Array(bufferLength);
-let prevDataArray = new Uint8Array(bufferLength).fill(0);
-const resolution = (48000 / analyser.fftSize) * 0.5;
+// let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+let audioContext, analyser, bufferLength, dataArray, prevDataArray, waveformArray, resolution;
+
 // Frame counter and FPS calculation
 let frameCounter = 0;
 let lastFrameTime = performance.now();
@@ -37,10 +32,11 @@ async function setupAudio2() {
         console.error("Error accessing audio stream:", err);
     }
 }
-async function setupAudio() {
+async function listenForFile() {
     console.log("start");
     // const fileInput = document.createElement("input");
     const fileInput = document.getElementById("chooseFile");
+
     // fileInput.type = "file";
     // fileInput.accept = "audio/mp3";
     // document.body.prepend(fileInput);
@@ -52,9 +48,7 @@ async function setupAudio() {
             const audioElement = new Audio(URL.createObjectURL(file));
             audioElement.crossOrigin = "anonymous"; // Ensures that the audio data can be accessed
 
-            const source = audioContext.createMediaElementSource(audioElement);
-            source.connect(analyser);
-            analyser.connect(audioContext.destination); // If you want to hear the audio output
+            setupAudio(audioElement);
             audioElement.play();
             fileInput.style.display = "none";
             visualize();
@@ -63,7 +57,21 @@ async function setupAudio() {
 
     // fileInput.click();
 }
+function setupAudio(audioElement) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256 * 2;
+    analyser.smoothingTimeConstant = 0.8; // Lower value for more responsiveness
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    prevDataArray = new Uint8Array(bufferLength).fill(0);
+    resolution = (48000 / analyser.fftSize) * 0.5;
+    waveformArray = new Uint8Array(analyser.fftSize);
 
+    const source = audioContext.createMediaElementSource(audioElement);
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+}
 function visualize() {
     requestAnimationFrame(visualize);
     analyser.getByteFrequencyData(dataArray);
@@ -265,7 +273,6 @@ function drawMiniGraph() {
     }
     ctx.stroke();
 }
-const waveformArray = new Uint8Array(analyser.fftSize);
 function drawWaveform() {
     // Get the time-domain data from the analyser node
     analyser.getByteTimeDomainData(waveformArray);
@@ -311,4 +318,4 @@ function calculateFPS() {
     lastFrameTime = now;
 }
 
-setupAudio();
+listenForFile();
