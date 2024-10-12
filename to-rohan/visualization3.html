@@ -5,10 +5,9 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Music Visualization for my bro!</title>
-        <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
         <style>
             body {
-/*                 margin: 200px; */
+                /* margin: 0px; */
                 overflow: hidden;
                 background: #333;
                 color: white;
@@ -23,46 +22,54 @@
             input {
                 /* position: absolute; */
             }
+
+            #main {}
+
+            .hide {
+                display: none;
+            }
         </style>
     </head>
 
     <body>
-        <br>
-        <label for="chooseFile">Choose an mp3:</label>
+        <div id="main">
+            <br>
+            <!-- <label for="chooseFile">Choose an mp3:</label> -->
+            <div id="audioContainer"></div>
 
-        <input type="file" id="chooseFile" accept="audio/mp3">
-        <br>
-        <!-- Number of Sides Input -->
-        <label for="numSides">Number of Sides (N):</label>
-        <input type="number" id="numSides" name="numSides" min="3" max="20" value="5">
+            <input type="file" id="chooseFile" accept="audio/mp3">
+            <br>
+            <!-- Number of Sides Input -->
+            <label for="numSides">Number of Sides (N):</label>
+            <input type="number" id="numSides" name="numSides" min="3" max="20" value="5">
 
-        <!-- Stroke Color Input -->
-        <label for="strokeColor">Stroke Color:</label>
-        <input type="color" id="strokeColor" name="strokeColor" value="#FFFFFF">
+            <!-- Stroke Color Input -->
+            <label for="strokeColor">Stroke Color:</label>
+            <input type="color" id="strokeColor" name="strokeColor" value="#FFFFFF">
 
-        <!-- Background Color Input -->
-        <label for="bgColor">Background Color:</label>
-        <input type="color" id="bgColor" name="bgColor" value="#000000">
-        <br>
-        <!-- Amplitude Input -->
-        <label for="amplitude">Amplitude:</label>
-        <span id="amplitudeValue">100</span>
-        <input type="range" id="amplitude" name="amplitude" min="0" max="1000" value="100">
-
-
-        <!-- Amplitude Input -->
-        <label for="waveLength">WaveLength:</label>
-        <span id="waveLengthValue">100</span>
-        <input type="range" id="waveLength" name="waveLength" min="0" max="500" value="100">
-        <br>
-        <label for="slideX">X:</label>
-        <span id="slideXValue">0500</span>
-        <input type="range" id="slideX" name="slideX" min="1" max="2000" value="500">
-        <label for="slideY">Y:</label>
-        <span id="slideYValue">0300</span>
-        <input type="range" id="slideY" name="slideY" min="1" max="2000" value="300">
+            <!-- Background Color Input -->
+            <label for="bgColor">Background Color:</label>
+            <input type="color" id="bgColor" name="bgColor" value="#000000">
+            <br>
+            <!-- Amplitude Input -->
+            <label for="amplitude">Amplitude:</label>
+            <span id="amplitudeValue">100</span>
+            <input type="range" id="amplitude" name="amplitude" min="0" max="1000" value="100">
 
 
+            <!-- Amplitude Input -->
+            <label for="waveLength">WaveLength:</label>
+            <span id="waveLengthValue">100</span>
+            <input type="range" id="waveLength" name="waveLength" min="0" max="500" value="100">
+            <br>
+            <label for="slideX">X:</label>
+            <span id="slideXValue">0500</span>
+            <input type="range" id="slideX" name="slideX" min="1" max="2000" value="500">
+            <label for="slideY">Y:</label>
+            <span id="slideYValue">0300</span>
+            <input type="range" id="slideY" name="slideY" min="1" max="2000" value="300">
+
+        </div>
         <canvas id="visualization"></canvas>
 
 
@@ -103,34 +110,43 @@
             // slideYInput.value = 1;
             // let audioContext = new (window.AudioContext || window.webkitAudioContext)();
             let audioContext, analyser, bufferLength, dataArray, prevDataArray, waveformArray, resolution;
+            let prevAudioElement;
 
             let prevFile;
             async function listenForFile() {
-                console.log("start");
-                // const fileInput = document.createElement("input");
                 const fileInput = document.getElementById("chooseFile");
-
-                // fileInput.type = "file";
-                // fileInput.accept = "audio/mp3";
-                // document.body.prepend(fileInput);
-                // console.log(fileInput);
                 fileInput.addEventListener("change", async (event) => {
                     const file = event.target.files[0];
                     if (file) {
-                        console.log("got file");
-                        const audioElement = new Audio(URL.createObjectURL(file));
-                        audioElement.crossOrigin = "anonymous"; // Ensures that the audio data can be accessed
+                        // Create an audio element with controls
+                        const audioElement = document.createElement('audio');
+                        audioElement.controls = true;
+                        audioElement.crossOrigin = "anonymous";
+                        audioElement.src = URL.createObjectURL(file);
 
+                        // Remove the previous audio element if it exists
+                        if (prevAudioElement) {
+                            prevAudioElement.pause();
+                            prevAudioElement.src = '';
+                            prevAudioElement.load();
+                            prevAudioElement.remove();
+                        }
+
+                        // Append the new audio element to the DOM
+                        const audioContainer = document.getElementById('audioContainer');
+                        audioContainer.appendChild(audioElement);
+                        prevAudioElement = audioElement;
+
+                        // Set up the audio context and analyser
                         setupAudio(audioElement);
-                        audioElement.play();
-                        if (prevFile !== undefined) prevFile.pause();
-                        prevFile = audioElement;
-                        // fileInput.style.display = "none";
+
+                        // Play the audio (optional)
+                        // audioElement.play();
+
+                        // Start visualization
                         visualize();
                     }
                 });
-
-                // fileInput.click();
             }
             function setupAudio(audioElement) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -264,6 +280,11 @@
             });
             slideYInput.addEventListener('input', () => {
                 slideYValueDisplay.textContent = slideYInput.value.padStart(4, '0');
+            });
+
+            document.addEventListener('keydown', function () {
+                const mainDiv = document.getElementById('main');
+                mainDiv.classList.toggle('hide');
             });
             listenForFile();
 
