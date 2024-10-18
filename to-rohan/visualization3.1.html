@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Music Visualization for my bro!</title>
+        <!-- <script src="https://d3js.org/d3.v7.min.js"></script> -->
+        <style>
+            body {
+                /* margin: 0px; */
+                /* overflow: hidden; */
+                background: #333;
+                color: white;
+            }
+
+            canvas {
+                display: block;
+                /* width: 100%; */
+                /* height: 100%; */
+            }
+
+            input {
+                /* position: absolute; */
+            }
+
+            #main {}
+
+            label {
+                user-select: none;
+            }
+
+            .hide {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="main">
+            <br>
+            <!-- <label for="chooseFile">Choose an mp3:</label> -->
+
+
+            <input type="file" id="chooseFile" accept="audio/mp3">
+            <br>
+
+            <br>
+            <!-- Number of Sides Input -->
+            <label for="numSides">Number of Sides (N):</label>
+            <input type="number" id="numSides" name="numSides" min="3" max="20" value="5">
+
+            <!-- Stroke Color Input -->
+            <label for="strokeColor">Stroke Color:</label>
+            <input type="color" id="strokeColor" name="strokeColor" value="#FFFFFF">
+
+            <!-- Background Color Input -->
+            <label for="bgColor">Background Color:</label>
+            <input type="color" id="bgColor" name="bgColor" value="#000000">
+            <br>
+            <!-- Amplitude Input -->
+            <label for="amplitude">Amplitude:</label>
+            <span id="amplitudeValue">100</span>
+            <input type="range" id="amplitude" name="amplitude" min="0" max="1000" value="100">
+
+
+            <!-- Amplitude Input -->
+            <label for="waveLength">WaveLength:</label>
+            <span id="waveLengthValue">100</span>
+            <input type="range" id="waveLength" name="waveLength" min="0" max="500" value="100">
+            <br>
+            <label for="slideX">X:</label>
+            <span id="slideXValue">0500</span>
+            <input type="range" id="slideX" name="slideX" min="1" max="2000" value="500">
+            <label for="slideY">Y:</label>
+            <span id="slideYValue">0300</span>
+            <input type="range" id="slideY" name="slideY" min="1" max="2000" value="300">
+
+            <br>
+            <label for="speedInput">Speed:</label>
+            <span id="speedInputValue">1</span>
+            <input type="range" id="speedInput" name="speedInput" min=".1" max="10" value="1" step=".1">
+            <div id="audioContainer"></div>
+        </div>
+        <canvas id="visualization"></canvas>
+
+
+
+
+        <script>
+            // Get references to the input elements
+            const numSidesInput = document.getElementById('numSides');
+            const strokeColorInput = document.getElementById('strokeColor');
+            const bgColorInput = document.getElementById('bgColor');
+            const amplitudeInput = document.getElementById('amplitude');
+            const waveLengthInput = document.getElementById('waveLength');
+            const waveLengthValueDisplay = document.getElementById('waveLengthValue');
+            const amplitudeValueDisplay = document.getElementById('amplitudeValue');
+
+
+            const slideXInput = document.getElementById('slideX');
+            const slideXValueDisplay = document.getElementById('slideXValue');
+
+            const slideYInput = document.getElementById('slideY');
+            const slideYValueDisplay = document.getElementById('slideYValue');
+
+            const speedInput = document.getElementById('speedInput');
+            const speedInputValue = document.getElementById('speedInputValue');
+            let audioElement;
+
+            // Update the amplitude display initially
+            speedInputValue.textContent = formatToPercent(speedInput.value);
+
+            // Update the amplitude display initially
+            amplitudeValueDisplay.textContent = amplitudeInput.value;
+
+            // Update the amplitude display initially
+            waveLengthValueDisplay.textContent = waveLengthInput.value;
+
+            const canvas = document.getElementById("visualization");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            // canvas.width = 500;
+            canvas.height = window.innerHeight;
+            // canvas.height = 500;
+
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
+            // slideXInput.value = WIDTH / 2;
+            // slideYInput.value = 1;
+            // let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            let audioContext, analyser, bufferLength, dataArray, prevDataArray, waveformArray, resolution;
+            let prevAudioElement;
+            let currentAudioElement;
+
+            let prevFile;
+            async function listenForFile() {
+                const fileInput = document.getElementById("chooseFile");
+                fileInput.addEventListener("change", async (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        // Create an audio element with controls
+                        const audioElement = document.createElement('audio');
+                        audioElement.controls = true;
+                        audioElement.crossOrigin = "anonymous";
+                        audioElement.src = URL.createObjectURL(file);
+
+                        // Remove the previous audio element if it exists
+                        if (prevAudioElement) {
+                            prevAudioElement.pause();
+                            prevAudioElement.src = '';
+                            prevAudioElement.load();
+                            prevAudioElement.remove();
+                        }
+
+                        // Append the new audio element to the DOM
+                        const audioContainer = document.getElementById('audioContainer');
+                        audioContainer.appendChild(audioElement);
+                        prevAudioElement = audioElement;
+                        // Set up the audio context and analyser
+                        setupAudio(audioElement);
+                        currentAudioElement = audioElement;
+
+                        // Play the audio (optional)
+                        // audioElement.play();
+
+                        // Start visualization
+                        visualize();
+                    }
+                });
+            }
+            function setupAudio(audioElement) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256 * 2;
+                analyser.smoothingTimeConstant = 0.8; // Lower value for more responsiveness
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                prevDataArray = new Uint8Array(bufferLength).fill(0);
+                resolution = (48000 / analyser.fftSize) * 0.5;
+                waveformArray = new Uint8Array(analyser.fftSize);
+
+                const source = audioContext.createMediaElementSource(audioElement);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+            }
+            function visualize() {
+                requestAnimationFrame(visualize);
+                // if (analyser !== undefined) analyser.getByteFrequencyData(dataArray);
+                // if (analyser !== undefined) analyser.getByteFrequencyData(dataArray);
+                // console.log("hey")
+                // Clear only the main visualization area
+                // ctx.clearRect(0, MAIN_VISUALIZATION_START_Y, WIDTH, HEIGHT - MAIN_VISUALIZATION_START_Y);
+                // ctx.fillStyle = "hsl(0, 0%, 20%)"; // Semi-transparent background
+                // ctx.fillStyle = "black"; // Semi-transparent background
+                // ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+                drawWaveforms({});
+            }
+            // visualize();
+            function drawPolygon(ctx, x, y, radius, sides, rotation = 0) {
+                ctx.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    const angle = i * 2 * Math.PI / sides + rotation;
+                    const px = x + radius * Math.cos(angle);
+                    const py = y + radius * Math.sin(angle);
+                    if (i === 0) {
+                        ctx.moveTo(px, py);
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                ctx.fill();
+            }
+            function analyzeArray(dataArray) {
+                let sum = 0;
+                let min = dataArray[0];
+                let max = dataArray[0];
+
+                for (let i = 0; i < dataArray.length; i++) {
+                    const value = dataArray[i];
+                    sum += value;
+
+                    if (value < min) {
+                        min = value;
+                    }
+
+                    if (value > max) {
+                        max = value;
+                    }
+                }
+
+                const average = sum / dataArray.length;
+                return {
+                    average: average,
+                    min: min,
+                    max: max
+                };
+            }
+            function drawWaveforms(options = {}) {
+                // const N = options.N || 5; // Number of waves (default to 5)
+
+                const waveLength = parseFloat(waveLengthInput.value) || 5000; // Amplitude scaling factor
+                const waveSize = waveLength;
+                const centerX = WIDTH / 2 - waveSize / 2;
+                const centerY = HEIGHT / 2 - waveSize / 2;
+                let currentX = centerX;
+                let currentY = centerY;
+                // slideXInput.value = WIDTH / 2;
+                // stuff from inputs
+                const N = parseInt(numSidesInput.value, 10) || 5; // Number of waves
+                const amplitude = parseFloat(amplitudeInput.value) || 5000; // Amplitude scaling factor
+                const slideX = parseInt(slideXInput.value) || 50000; // Number of waves
+                const slideY = parseInt(slideYInput.value) || 5000; // Amplitude scaling factor
+                currentX = slideX;
+                currentY = slideY;
+                ctx.fillStyle = bgColorInput.value;
+
+                ctx.globalAlpha = 0.25;
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                const strokeColor = strokeColorInput.value || "#FFFFFF"; // Stroke color
+                ctx.globalAlpha = 1;
+                // Get the time-domain data from the analyser node
+                analyser.getByteTimeDomainData(dataArray);
+
+                // Calculate the angle between each wave
+                // const angleStep = (2 * Math.PI) / N;
+                const angleStep = (2 * Math.PI) / N;
+
+                // Set up the drawing style
+                ctx.lineWidth = 1;
+                // ctx.strokeStyle = "white"; // Choose a color for the waveform
+                ctx.strokeStyle = strokeColor; // Choose a color for the waveform
+                ctx.moveTo(0, 0);
+                ctx.beginPath();
+                // const waveLength = 200 / (N);
+
+                const endPoints = [];
+                for (let i = 0; i < N; i++) {
+                    // Calculate the current angle
+                    const currentAngle = i * angleStep;
+
+                    // Draw the wave starting from the center
+                    const endPoint = drawWave(currentX, currentY, currentAngle, dataArray, amplitude, waveLength);
+                    // const endPoint = drawWave(currentX, currentY, currentAngle, dataArray);
+                    endPoints.push(endPoint);
+
+                    // Update currentX and currentY to the end point of the wave
+                    currentX = endPoint.x;
+                    currentY = endPoint.y;
+
+                    // drawPolygon(ctx, currentX, currentY, amplitude, N);
+                }
+
+                // ctx.closePath();
+                ctx.stroke();
+
+                // Draw the corners
+                // ctx.strokeStyle = 'lime';
+                // ctx.strokeStyle = 'white';
+                // ctx.fillStyle = 'cyan';
+                // ctx.fillStyle = 'white';
+                const arrayInfo = analyzeArray(dataArray);
+                // if (arrayInfo) debugger;
+                // console.log(arrayInfo)
+                let size = (arrayInfo.max - 128) / 256 * amplitude * 2 + (waveLength / 10);
+                ctx.beginPath();
+                for (let i = 0; i < endPoints.length; i++) {
+                    const endPoint = endPoints[i];
+                    drawPolygon(endPoint.x, endPoint.y, size, N);
+                }
+                ctx.stroke();
+                ctx.fill();
+
+                // ctx.stroke();
+            }
+
+            function drawPolygon(centerX, centerY, radius, sides) {
+                if (sides < 3) return; // A polygon needs at least 3 sides
+
+                const angle = (2 * Math.PI) / sides;
+
+                ctx.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    const x = centerX + radius * Math.cos(i * angle);
+                    const y = centerY + radius * Math.sin(i * angle);
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                ctx.fill();
+            }
+            function drawWave(startX, startY, angle, waveformArray, amplitude, waveLength) {
+                // Parameters for wave drawing
+                // const waveLength = 200; // Length of each wave segment
+                // const amplitude = 50; // Amplitude scaling factor
+
+                // Precompute cosine and sine of the angle
+                const cosAngle = Math.cos(angle);
+                const sinAngle = Math.sin(angle);
+
+                // Start drawing from startX, startY
+                ctx.moveTo(startX, startY);
+
+                // Calculate the number of points in the waveform
+                const numPoints = waveformArray?.length || 0;
+
+                for (let i = 0; i < numPoints; i++) {
+                    // Normalized position along the wave (0 to 1)
+                    const t = i / (numPoints - 1);
+
+                    // Get the waveform value normalized between -1 and 1
+                    const waveValue = (waveformArray[i] - 128) / 128;
+
+                    // Calculate the displacement along the wave direction
+                    const dx = t * waveLength * cosAngle - waveValue * amplitude * sinAngle;
+                    const dy = t * waveLength * sinAngle + waveValue * amplitude * cosAngle;
+
+                    // Calculate the new point position
+                    const x = startX + dx;
+                    const y = startY + dy;
+
+                    ctx.lineTo(x, y);
+                }
+                const endX = startX + waveLength * cosAngle;
+                const endY = startY + waveLength * sinAngle;
+
+                // Return the end point
+                return { x: endX, y: endY };
+            }
+
+            amplitudeInput.addEventListener('input', () => {
+                amplitudeValueDisplay.textContent = amplitudeInput.value.padStart(4, '0');
+            });
+            waveLengthInput.addEventListener('input', () => {
+                waveLengthValueDisplay.textContent = waveLengthInput.value.padStart(4, '0');
+            });
+            slideXInput.addEventListener('input', () => {
+                slideXValueDisplay.textContent = slideXInput.value.padStart(4, '0');
+            });
+            slideYInput.addEventListener('input', () => {
+                slideYValueDisplay.textContent = slideYInput.value.padStart(4, '0');
+            });
+
+            speedInput.addEventListener('input', () => {
+                speedInputValue.textContent = formatToPercent(speedInput.value);
+                if (currentAudioElement !== undefined)
+                    currentAudioElement.playbackRate = parseFloat(speedInput.value);
+
+                // console.log(speedInput);
+            });
+
+
+            document.addEventListener('keydown', function () {
+                const mainDiv = document.getElementById('main');
+
+                const ignoredKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Control', 'Shift', 'Alt'];
+
+                if (!ignoredKeys.includes(event.key)) {
+                    mainDiv.classList.toggle('hide');
+                }
+
+            });
+            listenForFile();
+            function formatToPercent(aNumber) {
+                if (aNumber === NaN) debugger;
+                return (Math.round(parseFloat(aNumber) * 100, 0) + "%")
+            }
+        </script>
+    </body>
+
+</html>
