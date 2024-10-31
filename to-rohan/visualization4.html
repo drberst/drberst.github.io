@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Music Visualization for my bro!</title>
+        <style>
+            body {
+                background: #333;
+                color: white;
+            }
+
+            canvas {
+                display: block;
+            }
+
+            #main {}
+
+            label {
+                user-select: none;
+            }
+
+            .hide {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="main">
+            <br>
+            <label for="chooseFile">Choose an mp3: </label>
+            <input type="file" id="chooseFile" accept="audio/mp3">
+            <br>
+            <label for="chooseFile2">Choose an image to go in the center:</label>
+            <input type="file" id="chooseFile2" accept="image/*">
+            <br>
+            <!-- Number of Sides Input -->
+            <label for="numSides">Number of Sides (N):</label>
+            <input type="number" id="numSides" name="numSides" min="3" max="20" value="4">
+            <!-- Stroke Color Input -->
+            <label for="strokeColor">Stroke Color:</label>
+            <input type="color" id="strokeColor" name="strokeColor" value="#FFFFFF">
+            <!-- Background Color Input -->
+            <label for="bgColor">Background Color:</label>
+            <input type="color" id="bgColor" name="bgColor" value="#FF0000">
+            <br>
+            <!-- Amplitude Input -->
+            <label for="amplitude">Amplitude:</label>
+            <span id="amplitudeValue">0100</span>
+            <input type="range" id="amplitude" name="amplitude" min="0" max="1000" value="100">
+            <!-- WaveLength Input -->
+            <label for="waveLength">WaveLength:</label>
+            <span id="waveLengthValue">0100</span>
+            <input type="range" id="waveLength" name="waveLength" min="0" max="500" value="100">
+            <br>
+            <label for="slideX">X:</label>
+            <span id="slideXValue">0500</span>
+            <input type="range" id="slideX" name="slideX" min="1" max="2000" value="500">
+            <label for="slideY">Y:</label>
+            <span id="slideYValue">0300</span>
+            <input type="range" id="slideY" name="slideY" min="1" max="2000" value="300">
+            <br>
+            <label for="speedInput">Speed:</label>
+            <span id="speedInputValue">100%</span>
+            <input type="range" id="speedInput" name="speedInput" min="0.1" max="10" value="1" step="0.1">
+            <br>
+            <!-- Corner Scale Input -->
+            <label for="cornerScale">Corner Scale (%):</label>
+            <span id="cornerScaleValue">0100%</span>
+            <input type="range" id="cornerScale" name="cornerScale" min="1" max="1000" value="100">
+            <br>
+            <!-- Image Scale Input -->
+            <label for="imageScale">Image Scale (%):</label>
+            <span id="imageScaleValue">100%</span>
+            <input type="range" id="imageScale" name="imageScale" min="25" max="400" value="100">
+            <br>
+            <!-- Line Thickness Input -->
+            <label for="lineThickness">Line Thickness:</label>
+            <span id="lineThicknessValue">2</span>
+            <input type="range" id="lineThickness" name="lineThickness" min="1" max="10" value="2">
+            <br>
+            <!-- Resolution Input -->
+            <label for="resolution">Resolution:</label>
+            <select id="resolution">
+                <option value="32">32</option>
+                <option value="64">64</option>
+                <option value="128">128</option>
+                <option value="256" selected>256</option>
+                <option value="512">512</option>
+                <option value="1024">1024</option>
+                <option value="2048">2048</option>
+                <option value="4096">4096</option>
+                <option value="8192">8192</option>
+            </select>
+            <div id="audioContainer"></div>
+        </div>
+        <canvas id="visualization"></canvas>
+
+        <script>
+            class Control {
+                constructor(id, defaultValue, displayFormatter = (val) => val) {
+                    this.input = document.getElementById(id);
+                    this.display = document.getElementById(id + 'Value');
+                    this.value = defaultValue;
+                    this.displayFormatter = displayFormatter;
+
+                    if (id === 'resolution') {
+                        this.input.addEventListener('input', () => {
+                            this.value = this.input.value;
+
+                            this.updateResolution();
+
+                        });
+                    }
+                    if (this.display) {
+                        this.input.addEventListener('input', () => {
+                            this.value = this.input.value;
+                            this.updateDisplay();
+
+                            if (id === 'speedInput' && currentAudioElement) {
+                                currentAudioElement.playbackRate = parseFloat(this.value);
+                            }
+
+                        });
+                    }
+
+                    this.input.addEventListener('input', () => {
+                        this.value = this.input.value;
+                    });
+
+                };
+
+
+                updateDisplay() {
+                    this.display.textContent = this.displayFormatter(this.value);
+                }
+                updateResolution() {
+                    // debugger;
+                    if (analyser) {
+                        analyser.fftSize = parseInt(this.value);
+                        bufferLength = analyser.frequencyBinCount;
+                        dataArray = new Uint8Array(bufferLength);
+                    }
+                }
+            }
+
+            // Initialize controls using the Control class
+            const controls = {
+                numSides: new Control('numSides', 4),
+                strokeColor: new Control('strokeColor', '#FFFFFF'),
+                bgColor: new Control('bgColor', '#FF0000'),
+                amplitude: new Control('amplitude', 100, (val) => String(val).padStart(4, '0')),
+                waveLength: new Control('waveLength', 100, (val) => String(val).padStart(4, '0')),
+                slideX: new Control('slideX', 500, (val) => String(val).padStart(4, '0')),
+                slideY: new Control('slideY', 300, (val) => String(val).padStart(4, '0')),
+                speedInput: new Control('speedInput', 1, (val) => (parseFloat(val) * 100).toFixed(0).padStart(4, '0') + '%'),
+                cornerScale: new Control('cornerScale', 100, (val) => String(val).padStart(4, '0') + '%'),
+                imageScale: new Control('imageScale', 100, (val) => String(val).padStart(3, '0') + '%'),
+                lineThickness: new Control('lineThickness', 2, (val) => val),
+                resolution: new Control('resolution', 256)
+            };
+
+            let audioContext, analyser, bufferLength, dataArray;
+            let prevAudioElement;
+            let currentAudioElement;
+            let IMAGEFILE;
+
+            const canvas = document.getElementById("visualization");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const WIDTH = canvas.width;
+            const HEIGHT = canvas.height;
+
+            function listenForAudioFile() {
+                const fileInput = document.getElementById("chooseFile");
+                fileInput.addEventListener("change", (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        // Create an audio element with controls
+                        const audioElement = document.createElement('audio');
+                        audioElement.controls = true;
+                        audioElement.crossOrigin = "anonymous";
+                        audioElement.src = URL.createObjectURL(file);
+
+                        // Remove the previous audio element if it exists
+                        if (prevAudioElement) {
+                            prevAudioElement.pause();
+                            prevAudioElement.src = '';
+                            prevAudioElement.load();
+                            prevAudioElement.remove();
+                        }
+
+                        // Append the new audio element to the DOM
+                        const audioContainer = document.getElementById('audioContainer');
+                        audioContainer.appendChild(audioElement);
+                        prevAudioElement = audioElement;
+
+                        // Set up the audio context and analyser
+                        setupAudio(audioElement);
+                        currentAudioElement = audioElement;
+
+                        // Start visualization
+                        visualize();
+                    }
+                });
+            }
+
+            function listenForImageFile() {
+                const fileInput = document.getElementById("chooseFile2");
+                fileInput.addEventListener("change", (event) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const img = new Image();
+                        img.onload = function () {
+                            IMAGEFILE = img;
+                        };
+                        img.src = URL.createObjectURL(file);
+                    }
+                });
+            }
+
+            function setupAudio(audioElement) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = parseInt(controls.resolution.value);
+                analyser.smoothingTimeConstant = 0.8;
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+
+                const source = audioContext.createMediaElementSource(audioElement);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+            }
+
+            function visualize() {
+                requestAnimationFrame(visualize);
+                drawWaveforms();
+                if (Math.random() < 0.01) {
+                    console.log("dataArray", dataArray);
+                }
+            }
+
+            function drawWaveforms() {
+                // Get values from controls
+                const N = parseInt(controls.numSides.value) || 5;
+                const amplitude = parseFloat(controls.amplitude.value) || 0;
+                const waveLength = parseFloat(controls.waveLength.value) || 0;
+                const slideX = parseInt(controls.slideX.value) || WIDTH / 2;
+                const slideY = parseInt(controls.slideY.value) || HEIGHT / 2;
+                const strokeColor = controls.strokeColor.value || "#FFFFFF";
+                const cornerScaleValue = parseFloat(controls.cornerScale.value) || 100;
+                const imageScaleValue = parseFloat(controls.imageScale.value) || 100;
+                const lineThickness = parseFloat(controls.lineThickness.value) || 2;
+
+                // Clear the canvas with a semi-transparent background
+                ctx.fillStyle = controls.bgColor.value;
+                ctx.globalAlpha = 0.25;
+                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                ctx.globalAlpha = 1;
+
+                // Set up the drawing style
+                ctx.lineWidth = lineThickness;
+                ctx.strokeStyle = strokeColor;
+
+                // Get the time-domain data from the analyser node
+                if (analyser) {
+                    analyser.getByteTimeDomainData(dataArray);
+                }
+
+                const angleStep = (2 * Math.PI) / N;
+                ctx.beginPath();
+                let currentX = slideX;
+                let currentY = slideY;
+                const endPoints = [];
+
+                for (let i = 0; i < N; i++) {
+                    const currentAngle = i * angleStep;
+                    const endPoint = drawWave(currentX, currentY, currentAngle, amplitude, waveLength);
+                    endPoints.push(endPoint);
+                    currentX = endPoint.x;
+                    currentY = endPoint.y;
+                }
+
+                ctx.stroke();
+
+                // Calculate average amplitude for pulsing effect
+                let avgAmplitude = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+                avgAmplitude = (avgAmplitude - 128) / 128; // Normalize between -1 and 1
+
+                // Calculate centroid of the polygon
+                let centroidX = 0, centroidY = 0;
+                for (let i = 0; i < endPoints.length; i++) {
+                    centroidX += endPoints[i].x;
+                    centroidY += endPoints[i].y;
+                }
+                centroidX /= endPoints.length;
+                centroidY /= endPoints.length;
+
+                // Draw corner polygons with adjusted scaling
+                ctx.beginPath();
+                for (let i = 0; i < endPoints.length; i++) {
+                    const endPoint = endPoints[i];
+                    // 90% from amplitude, 10% from waveLength
+                    let amplitudeComponent = avgAmplitude * (cornerScaleValue / 100) * 0.9 * amplitude;
+                    let wavelengthComponent = (waveLength * (cornerScaleValue / 100)) * 0.1;
+                    let dynamicSize = amplitudeComponent + wavelengthComponent;
+                    if (isNaN(dynamicSize) || dynamicSize < 0) dynamicSize = waveLength * (cornerScaleValue / 100) * 0.1;
+                    drawPolygon(endPoint.x, endPoint.y, Math.abs(dynamicSize), N);
+                }
+                ctx.stroke();
+                ctx.fill();
+
+                // Draw the image at the centroid with proper scaling
+                if (IMAGEFILE) {
+                    drawImage(centroidX, centroidY, waveLength);
+                }
+            }
+
+            function drawWave(startX, startY, angle, amplitude, waveLength) {
+                const cosAngle = Math.cos(angle);
+                const sinAngle = Math.sin(angle);
+
+                ctx.moveTo(startX, startY);
+
+                const numPoints = dataArray?.length || 0;
+
+                for (let i = 0; i < numPoints; i++) {
+                    const t = i / (numPoints - 1);
+                    const waveValue = (dataArray[i] - 128) / 128;
+                    const dx = t * waveLength * cosAngle - waveValue * amplitude * sinAngle;
+                    const dy = t * waveLength * sinAngle + waveValue * amplitude * cosAngle;
+                    const x = startX + dx;
+                    const y = startY + dy;
+                    ctx.lineTo(x, y);
+                }
+
+                const endX = startX + waveLength * cosAngle;
+                const endY = startY + waveLength * sinAngle;
+                return { x: endX, y: endY };
+            }
+
+            function drawPolygon(centerX, centerY, radius, sides) {
+                if (sides < 3) return;
+
+                const angle = (2 * Math.PI) / sides;
+
+                ctx.beginPath();
+                for (let i = 0; i < sides; i++) {
+                    const x = centerX + radius * Math.cos(i * angle);
+                    const y = centerY + radius * Math.sin(i * angle);
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                ctx.fill();
+            }
+
+            function drawImage(centerX, centerY, waveLength) {
+                const scale = parseFloat(controls.imageScale.value) / 100; // Convert percentage to scale factor
+                const baseSize = waveLength / 2; // Base size of the image
+                const imageSize = baseSize * scale; // Adjusted image size
+                const imageX = centerX - imageSize / 2;
+                const imageY = centerY - imageSize / 2;
+                ctx.drawImage(IMAGEFILE, imageX, imageY, imageSize, imageSize);
+            }
+
+            // Hide/show controls on keydown
+            document.addEventListener('keydown', function (event) {
+                const mainDiv = document.getElementById('main');
+                const ignoredKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Control', 'Shift', 'Alt'];
+                if (!ignoredKeys.includes(event.key)) {
+                    mainDiv.classList.toggle('hide');
+                }
+            });
+
+            listenForAudioFile();
+            listenForImageFile();
+        </script>
+    </body>
+
+</html>
