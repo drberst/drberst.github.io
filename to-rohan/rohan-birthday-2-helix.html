@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <title>3D Pitch Helix</title>
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+                /* Hide scrollbars */
+                background-color: #000000;
+                /* optional dark background */
+            }
+
+            #audio {
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 10;
+            }
+
+            /* Simple debug text overlay */
+            #debugInfo {
+                position: absolute;
+                top: 40px;
+                left: 10px;
+                z-index: 20;
+                color: #ffffff;
+                font-family: monospace;
+                background: rgba(0, 0, 0, 0.5);
+                padding: 5px;
+            }
+
+            #histogram {
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- Audio element -->
+        <audio id="audio" src="bardthesongshort.mp3" type="audio/mp3" controls></audio>
+        <!-- <audio id="audio" src="sword-search.mp3" type="audio/mp3" controls></audio> -->
+        <!-- <audio id="audio" src="justscale.mp3" type="audio/mp3" controls></audio> -->
+        <!-- <audio id="audio" src="c-major-scale.mp3" type="audio/mp3" controls></audio> -->
+
+        <div id="debugInfo">
+            <div id="cameraPos"></div>
+            <div id="histogram"></div>
+        </div>
+
+        <!-- Three.js and OrbitControls -->
+        <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
+
+        <script>
+            alert("Happy birthday!!!!")
+            // ====================
+            //  Audio + Analyzer
+            // ====================
+            let audioContext;
+            let analyzer;
+            let dataArray;
+            let sampleRate = 48000;
+            // const NUM_BINS = 4096;
+            const NUM_BINS = 256 * 16;
+            const audioElement = document.getElementById("audio");
+            const cubes = [];
+            audioElement.addEventListener("play", initAudio, false);
+
+            async function initAudio() {
+                if (audioContext) return; // Already initialized
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                sampleRate = audioContext.sampleRate;
+
+                const source = audioContext.createMediaElementSource(audioElement);
+
+                analyzer = audioContext.createAnalyser();
+                // 8192 => 4096 bins
+                // analyzer.fftSize = 8192;
+                analyzer.fftSize = NUM_BINS * 2;
+                dataArray = new Uint8Array(analyzer.frequencyBinCount);
+
+                // Connect audio graph
+                source.connect(analyzer);
+                analyzer.connect(audioContext.destination);
+                initCubes();
+                animate();
+            }
+
+            // ====================
+            //  Three.js Setup
+            // ====================
+            const scene = new THREE.Scene();
+
+            // Camera
+            const camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                3000
+            );
+            // camera angle selected especially for Rohan's birthday :)
+            camera.position.set(0, 47.5, 0);
+
+
+            // Renderer (with antialiasing)
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // OrbitControls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.1;
+
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(0, 100, 100).normalize();
+            scene.add(dirLight);
+
+            // ====================
+            //  Debug Axes & Grid
+            // ====================
+            // A 3D axis helper (length = 100 by default)
+            const axesHelper = new THREE.AxesHelper(100);
+            // scene.add(axesHelper);
+
+            // A grid on the XZ plane ( size = 200, divisions = 20, color lines = grey )
+            const gridHelper = new THREE.GridHelper(200, 20, 0x888888, 0x444444);
+            // Rotate so that it sits on XZ plane, by default it's on the XZ plane with Y=0
+            // Actually no rotation needed for XZ plane in newer Three.js versions
+            // scene.add(gridHelper);
+
+            // ====================
+            //  Helix Parameters
+            // ====================
+            // We'll place 4096 cubes in a pitch helix
+            //  - R: radius of the circular path in the XZ plane
+            //  - C: vertical distance per semitone
+            const R = 5;    // radius
+            const C = 1;   // semitone spacing
+
+            function fractionalSemitone(p) {
+                let semitones = p % 12;
+                if (semitones < 0) {
+                    semitones += 12;
+                }
+                return semitones;
+            }
+
+            function binIndexToFrequency(i) {
+                if (!sampleRate) return 0;
+                // debugger;
+                return i * (sampleRate / analyzer.fftSize);
+            }
+
+            // ====================
+            //  Creating the Cubes
+            // ====================
+            function initCubes() {
+                // analyzer.frequencyBinCount
+                const cubeGroup = new THREE.Group();
+                scene.add(cubeGroup);
+
+                // const cubes = [];
+                const geometry = new THREE.BoxGeometry(.5, .5, .5); // small cubes
+
+                for (let i = 0; i < NUM_BINS; i++) {
+                    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+                    const cube = new THREE.Mesh(geometry, material);
+
+                    const freq = binIndexToFrequency(i);
+                    const safeFreq = Math.max(freq, 1);
+                    // pitchClass: 12 * log2(freq / 440)
+                    const pitchClass = 12 * Math.log2(safeFreq / 440);
+
+                    const semitoneFrac = fractionalSemitone(pitchClass);
+                    const angle = 2 * Math.PI * (semitoneFrac / 12);
+                    // const scale = (i / NUM_BINS) * 10
+                    const scale = 1
+                    const y = C * pitchClass;
+                    const x = R * Math.cos(angle) * scale;
+                    const z = R * Math.sin(angle) * scale;
+                    const y2 = Math.abs(y);
+
+                    cube.position.set(x, y, z);
+                    // if (y < 0) {
+                    // cube.position.set(x * 5, y, z * 5);
+                    // cube.scale.x = 10 / Math.log2(i * .1 + 1);
+                    // cube.scale.z = cube.scale.x
+                    // }
+
+
+                    // cube.position.set(x, i, z);
+
+                    // Base scale: height = 1 when amplitude = 0
+                    // cube.scale.y = cube.scale.x;
+
+
+                    cubeGroup.add(cube);
+                    cubes.push(cube);
+                }
+                camera.rotation.y = 90
+            }
+
+
+            // ====================
+            //  Color Gradient
+            // ====================
+            // Now we want amplitude=0 => white, amplitude=1 => gold
+            // Let's define a new gradient approach:
+            // 0 => white (#ffffff)
+            // 0.5 => purple (#800080)
+            // 1 => gold (#FFD700)
+            function getColorByHeight(normVal) {
+                // clamp 0..1
+                normVal = Math.max(0, Math.min(normVal, 1));
+                function lerp(a, b, t) { return a + (b - a) * t; }
+
+                let r, g, b;
+                if (normVal <= 0.5) {
+                    // white to purple
+                    const t = normVal / 0.5;
+                    // white (#ffffff) => (255,255,255)
+                    // purple(#800080) => (128,0,128)
+                    r = lerp(0, 128 * .25, t);
+                    g = lerp(0, 0, t);
+                    b = lerp(0, 128 * .25, t);
+                } else {
+                    // purple to gold
+                    const t = (normVal - 0.5) / 0.5;
+                    // purple(#800080) => (128,0,128)
+                    // gold(#FFD700)   => (255,215,0)
+                    r = lerp(128, 255, t);
+                    g = lerp(0, 215, t);
+                    b = lerp(128, 0, t);
+                }
+                return new THREE.Color(r / 255, g / 255, b / 255);
+            }
+
+            // ====================
+            //  Histogram Debug
+            // ====================
+            // We'll create a small histogram of amplitude distribution.
+            // For simplicity, let's do 5 buckets: [0..50], [51..100], [101..150], [151..200], [201..255]
+            function updateHistogram(data) {
+                // Count how many bins fall in each range
+                const ranges = [0, 0, 0, 0, 0];
+                for (let i = 0; i < data.length; i++) {
+                    const amp = data[i];
+                    if (amp <= 50) ranges[0]++;
+                    else if (amp <= 100) ranges[1]++;
+                    else if (amp <= 150) ranges[2]++;
+                    else if (amp <= 200) ranges[3]++;
+                    else ranges[4]++;
+                }
+                // Build a text summary
+                const total = data.length;
+                const text = `
+[0..50]:   ${ranges[0]}
+[51..100]: ${ranges[1]}
+[101..150]:${ranges[2]}
+[151..200]:${ranges[3]}
+[201..255]:${ranges[4]}
+
+total bins: ${total}
+`;
+                return text;
+            }
+
+            // Grab the debug elements
+            const cameraPosDiv = document.getElementById("cameraPos");
+            const histogramDiv = document.getElementById("histogram");
+
+            // ====================
+            //  Animation Loop
+            // ====================
+            function animate() {
+                requestAnimationFrame(animate);
+
+                // Update OrbitControls
+
+                controls.update();
+                // Log camera position to debug panel
+                const cx = camera.position.x.toFixed(2);
+                const cy = camera.position.y.toFixed(2);
+                const cz = camera.position.z.toFixed(2);
+                // cameraPosDiv.textContent = `Camera pos: x=${cx}, y=${cy}, z=${cz}`;
+
+                if (analyzer && dataArray) {
+                    analyzer.getByteFrequencyData(dataArray);
+
+                    // build histogram text
+                    // histogramDiv.textContent = updateHistogram(dataArray);
+
+                    for (let i = 0; i < NUM_BINS; i++) {
+                        const amp = dataArray[i]; // 0..255
+                        let normAmp = amp / 255;
+                        // if (normAmp < .25) normAmp *= normAmp;
+                        // If amplitude = 0 => scale.y = 1 (already set as base),
+                        // but if amplitude is bigger, let's scale up to e.g. 6
+                        // const height = 1 + normAmp * normAmp * 5 * 5; // base of 1, plus up to 5
+                        const height = 1 * normAmp * 10; // base of 1, plus up to 5
+                        // const invertedFactor = 10 / Math.log2(i);
+                        // cubes[i].scale.x = height / 4;
+                        // cubes[i].scale.z = height / 4;
+                        // cubes[i].scale.x = height;
+                        // cubes[i].scale.y = height + 1 * Math.pow(i / 1000, 3);
+                        cubes[i].scale.y = height;
+                        // cubes[i].scale.z = height;
+
+                        // color
+                        cubes[i].material.color.set(getColorByHeight(normAmp));
+                    }
+                }
+                // camera.rotation.x(2)
+                renderer.render(scene, camera);
+            }
+
+
+            // Handle window resize
+            window.addEventListener("resize", () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            // setInterval(() => {
+            //     console.log(camera.rotation)
+            //     console.log(camera.position)
+            // }, 1000);
+        </script>
+    </body>
+
+</html>
