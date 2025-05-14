@@ -12,6 +12,7 @@
 
             canvas {
                 display: block;
+                width: 100%;
             }
 
             #main {}
@@ -93,6 +94,9 @@
                 <option value="4096">4096</option>
                 <option value="8192">8192</option>
             </select>
+            <!-- Transparent Background Input -->
+            <label for="transparentBG">Transparent Background:</label>
+            <input type="checkbox" id="transparentBG" name="transparentBG">
             <div id="audioContainer"></div>
         </div>
         <canvas id="visualization"></canvas>
@@ -158,7 +162,8 @@
                 cornerScale: new Control('cornerScale', 100, (val) => String(val).padStart(4, '0') + '%'),
                 imageScale: new Control('imageScale', 100, (val) => String(val).padStart(3, '0') + '%'),
                 lineThickness: new Control('lineThickness', 2, (val) => val),
-                resolution: new Control('resolution', 256)
+                resolution: new Control('resolution', 256),
+                transparentBG: new Control('transparentBG', false)
             };
 
             let audioContext, analyser, bufferLength, dataArray;
@@ -170,8 +175,28 @@
             const ctx = canvas.getContext("2d");
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            const WIDTH = canvas.width;
-            const HEIGHT = canvas.height;
+            let WIDTH = canvas.width;
+            let HEIGHT = canvas.height;
+
+            // Add these lines to get mouse coordinates
+            let mouseX = WIDTH / 2;
+            let mouseY = HEIGHT / 2;
+
+            document.addEventListener('mousemove', function (event) {
+                mouseX = event.clientX;
+                mouseY = event.clientY;
+            });
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                WIDTH = canvas.width;
+                HEIGHT = canvas.height;
+            }
+
+            resizeCanvas(); // Initial resize
+
+            window.addEventListener('resize', resizeCanvas);
 
             function listenForAudioFile() {
                 const fileInput = document.getElementById("chooseFile");
@@ -254,11 +279,16 @@
                 const cornerScaleValue = parseFloat(controls.cornerScale.value) || 100;
                 const imageScaleValue = parseFloat(controls.imageScale.value) || 100;
                 const lineThickness = parseFloat(controls.lineThickness.value) || 2;
+                const transparentBG = controls.transparentBG.value;
 
-                // Clear the canvas with a semi-transparent background
-                ctx.fillStyle = controls.bgColor.value;
-                ctx.globalAlpha = 0.25;
-                ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                // Clear the canvas
+                if (transparentBG) {
+                    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+                } else {
+                    ctx.fillStyle = controls.bgColor.value;
+                    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+                }
+
                 ctx.globalAlpha = 1;
 
                 // Set up the drawing style
@@ -363,20 +393,54 @@
             }
 
             function drawImage(centerX, centerY, waveLength) {
-                const scale = parseFloat(controls.imageScale.value) / 100; // Convert percentage to scale factor
-                const baseSize = waveLength / 2; // Base size of the image
-                const imageSize = baseSize * scale; // Adjusted image size
+                const scale = parseFloat(controls.imageScale.value) / 100;
+                const imageSize = waveLength * scale;
+
                 const imageX = centerX - imageSize / 2;
                 const imageY = centerY - imageSize / 2;
+
                 ctx.drawImage(IMAGEFILE, imageX, imageY, imageSize, imageSize);
             }
 
             // Hide/show controls on keydown
             document.addEventListener('keydown', function (event) {
                 const mainDiv = document.getElementById('main');
-                const ignoredKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Control', 'Shift', 'Alt'];
-                if (!ignoredKeys.includes(event.key)) {
+                // Prevent spacebar from scrolling the page
+                if (event.key === ' ') {
+                    event.preventDefault();
+                }
+                if (event.key === 'h') {
                     mainDiv.classList.toggle('hide');
+                }
+                // Hotkey to set center to mouse position (e.g., 'm' key)
+                if (event.key === 'm') {
+                    controls.slideX.input.value = mouseX;
+                    controls.slideY.input.value = mouseY;
+                    controls.slideX.value = mouseX;
+                    controls.slideY.value = mouseY;
+                    controls.slideX.updateDisplay();
+                    controls.slideY.updateDisplay();
+                }
+
+                // Hotkey to set center to middle of screen (e.g., 'c' key)
+                if (event.key === 'c') {
+                    controls.slideX.input.value = WIDTH / 2;
+                    controls.slideY.input.value = HEIGHT / 2;
+                    controls.slideX.value = WIDTH / 2;
+                    controls.slideY.value = HEIGHT / 2;
+                    controls.slideX.updateDisplay();
+                    controls.slideY.updateDisplay();
+                }
+
+                // Hotkey to toggle play/pause (e.g., 'p' key)
+                if (event.key === 'p' || event.key === ' ' || event.key === 'k') {
+                    if (currentAudioElement) {
+                        if (currentAudioElement.paused) {
+                            currentAudioElement.play();
+                        } else {
+                            currentAudioElement.pause();
+                        }
+                    }
                 }
             });
 
